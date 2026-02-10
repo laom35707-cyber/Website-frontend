@@ -26,22 +26,44 @@
             justify-content: center; 
             align-items: center; 
             z-index: 100; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         .button-group { 
             width: 100%; 
             display: flex; 
             justify-content: space-around; 
             align-items: center; 
+            max-width:600px;
         }
         .nav-btn { 
-            height: 50%; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             cursor: pointer; 
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            min-width: 60px;
         }
-        .nav-btn img { 
-            height: 100%; 
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.03);
         }
-        .active-btn { 
-            mix-blend-mode: multiply; 
+        .nav-btn.active {
+            background: rgba(43, 43, 255, 0.1);
+        }
+        .nav-btn .emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        .nav-btn .text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+        .nav-btn.active .text {
+            color: #2b2bff;
+            font-weight: 600;
         }
 
         /* 3. 原study页面样式 */
@@ -250,10 +272,22 @@
     <!-- 导航栏 -->
     <div class="nav-container">
         <div class="button-group">
-            <div class="nav-btn" onclick="location.href='index.html'"><img src="res/button/No/home.jpg"></div>
-            <div class="nav-btn" onclick="location.href='study.html'"><img src="res/button/yes/Study.jpg" class="active-btn"></div>
-            <div class="nav-btn" onclick="location.href='diary.html'"><img src="res/button/No/diary.jpg"></div>
-            <div class="nav-btn" onclick="location.href='w.html'"><img src="res/button/No/w.jpg"></div>
+            <div class="nav-btn" onclick="location.href='index.html'">
+                <div class="emoji">🏠</div>
+                <div class="text">主页</div>
+            </div>
+            <div class="nav-btn active" onclick="location.href='study.html'">
+                <div class="emoji">📚</div>
+                <div class="text">学习</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='diary.html'">
+                <div class="emoji">📓</div>
+                <div class="text">日记</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='w.html'">
+                <div class="emoji">⚙️</div>
+                <div class="text">状态</div>
+            </div>
         </div>
     </div>
 

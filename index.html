@@ -13,27 +13,98 @@
             height: 100vh;
         }
         /* 2. 导航栏样式 (所有页面通用) */
-        .nav-container { position: fixed; bottom: 12px; left: 2%; width: 96%; height: 80px; background: #fff; border-radius: 18px; border: 1px solid #e8e8e8; display: flex; justify-content: center; align-items: center; z-index: 100; }
-        .button-group { width: 100%; display: flex; justify-content: space-around; align-items: center; }
-        .nav-btn { height: 50%; cursor: pointer; }
-        .nav-btn img { height: 100%; }
-        .active-btn { mix-blend-mode: multiply; } /* 色度抠图 */
+        .nav-container { 
+            position: fixed; 
+            bottom: 12px; 
+            left: 2%; 
+            width: 96%; 
+            height: 80px; 
+            background: #fff; 
+            border-radius: 18px; 
+            border: 1px solid #e8e8e8; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .button-group { 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            max-width:600px;
+        }
+        .nav-btn { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            min-width: 60px;
+        }
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        .nav-btn.active {
+            background: rgba(43, 43, 255, 0.1);
+        }
+        .nav-btn .emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        .nav-btn .text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+        .nav-btn.active .text {
+            color: #2b2bff;
+            font-weight: 600;
+        }
 
-        .home-content { text-align: center; padding-top: 30vh; letter-spacing: 10px; }
+        .home-content { 
+            text-align: center; 
+            padding-top: 30vh; 
+            letter-spacing: 10px; 
+        }
+        .home-content h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        .home-content p {
+            color: #666;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
     <div class="home-content">
         <h1>HOME</h1>
-        <p>欢迎回到私人空间</p>
+        <p>欢迎</p>
     </div>
 
     <div class="nav-container">
         <div class="button-group">
-            <div class="nav-btn" onclick="location.href='index.html'"><img src="res/button/yes/home.jpg" class="active-btn"></div>
-            <div class="nav-btn" onclick="location.href='study.html'"><img src="res/button/No/Study.jpg"></div>
-            <div class="nav-btn" onclick="location.href='diary.html'"><img src="res/button/No/diary.jpg"></div>
-            <div class="nav-btn" onclick="location.href='w.html'"><img src="res/button/No/w.jpg"></div>
+            <div class="nav-btn active" onclick="location.href='index.html'">
+                <div class="emoji">🏠</div>
+                <div class="text">主页</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='study.html'">
+                <div class="emoji">📚</div>
+                <div class="text">学习</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='diary.html'">
+                <div class="emoji">📓</div>
+                <div class="text">日记</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='w.html'">
+                <div class="emoji">⚙️</div>
+                <div class="text">状态</div>
+            </div>
         </div>
     </div>
 </body>

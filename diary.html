@@ -54,6 +54,111 @@
   .post .meta{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
   .post .title{ font-weight:600; margin-bottom:8px; font-size:16px; }
   .post .text{ color:#222; line-height:1.7; white-space:pre-wrap; margin-bottom:10px; }
+  
+  /* 媒体内容样式 */
+  .media-container {
+    margin: 16px 0;
+    max-width: 100%;
+  }
+  .media-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 12px 0;
+    border: 1px solid #f0f0f0;
+    background: #fafafa;
+  }
+  .drive-image, .drive-video {
+    display: block;
+    max-width: 100%;
+    max-height: 400px;
+    margin: 0 auto;
+  }
+  .drive-video {
+    width: 100%;
+    height: auto;
+  }
+  .media-caption {
+    font-size: 13px;
+    color: #666;
+    padding: 8px 12px;
+    background: #f9f9f9;
+    border-top: 1px solid #f0f0f0;
+  }
+  .media-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    display: none;
+  }
+  .media-item:hover .media-remove {
+    display: block;
+  }
+  
+  /* 媒体插入模态框 */
+  .media-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .media-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .media-modal h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+  }
+  .media-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  .media-input:focus {
+    outline: none;
+    border-color: #2b2bff;
+  }
+  .media-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+  .media-hint {
+    font-size: 13px;
+    color: #888;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .media-hint a {
+    color: #2b2bff;
+    text-decoration: none;
+  }
+  .media-hint a:hover {
+    text-decoration: underline;
+  }
 
   .trash-modal-overlay {
     position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.3); z-index: 1000; display:none; align-items:center; justify-content:center;
@@ -72,17 +177,63 @@
   .trash-item .time{ color:var(--muted); font-size:12px; }
   .trash-actions { display:flex; gap:8px; margin-top:4px; }
 
+  /* 导航栏样式修改 */
   .nav-container {
-    position: fixed; bottom: 12px; left: 2%; width: 96%; height: 80px; background: #fff; border-radius: 18px; border: 1px solid #e8e8e8;
-    display: flex; justify-content: center; align-items: center; z-index: 100;
+    position: fixed; 
+    bottom: 12px; 
+    left: 2%; 
+    width: 96%; 
+    height: 80px; 
+    background: #fff; 
+    border-radius: 18px; 
+    border: 1px solid #e8e8e8;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
-  .button-group { width: 100%; display: flex; justify-content: space-around; align-items: center; max-width:600px; }
-  .nav-btn { height: 50%; cursor: pointer; }
-  .nav-btn img { height: 100%; }
-  .active-btn { mix-blend-mode: multiply; }
+  .button-group { 
+    width: 100%; 
+    display: flex; 
+    justify-content: space-around; 
+    align-items: center; 
+    max-width:600px;
+  }
+  .nav-btn { 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer; 
+    padding: 8px 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .nav-btn:hover {
+    background: rgba(0,0,0,0.03);
+  }
+  .nav-btn.active {
+    background: rgba(43, 43, 255, 0.1);
+  }
+  .nav-btn .emoji {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .nav-btn .text {
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+  }
+  .nav-btn.active .text {
+    color: #2b2bff;
+    font-weight: 600;
+  }
 
   @media (max-width:640px){
     .trash-panel{ width:95%; max-height:60vh; }
+    .media-modal { width: 95%; padding: 16px; }
   }
 </style>
 </head>
@@ -115,6 +266,7 @@
     <div class="tool-row">
       <div class="left-tools">
         <button class="btn" id="loadDraftBtn">载入草稿</button>
+        <button class="btn" id="insertMediaBtn">插入媒体</button>
         <button class="btn" id="openTrashBtn">垃圾桶</button>
       </div>
 
@@ -129,6 +281,28 @@
   </section>
 </div>
 
+<!-- 媒体插入模态框 -->
+<div id="mediaOverlay" class="media-modal-overlay">
+  <div class="media-modal">
+    <h3>插入Google Drive媒体</h3>
+    <input type="text" id="mediaUrlInput" class="media-input" placeholder="输入Google Drive图片或视频链接" />
+    <input type="text" id="mediaCaptionInput" class="media-input" placeholder="媒体描述（可选）" />
+    
+    <div class="media-hint">
+      <strong>如何获取Google Drive链接：</strong><br>
+      1. 在Google Drive中右键点击文件 → "获取链接"<br>
+      2. 将权限设置为"知道链接的任何人"<br>
+      3. 复制链接并粘贴到上方<br>
+      4. 确保链接中包含"drive.google.com/file/d/"字样
+    </div>
+    
+    <div class="media-buttons">
+      <button class="btn" id="cancelMediaBtn">取消</button>
+      <button class="btn primary" id="insertMediaConfirmBtn">插入</button>
+    </div>
+  </div>
+</div>
+
 <div id="trashOverlay" class="trash-modal-overlay"></div>
 <div id="trashPanel" class="trash-panel">
   <div class="trash-header">
@@ -139,19 +313,24 @@
   </div>
 </div>
 
+<!-- 修改后的导航栏 -->
 <div class="nav-container">
   <div class="button-group">
     <div class="nav-btn" onclick="location.href='index.html'">
-      <img src="res/button/No/home.jpg">
+      <div class="emoji">🏠</div>
+      <div class="text">主页</div>
     </div>
     <div class="nav-btn" onclick="location.href='study.html'">
-      <img src="res/button/No/Study.jpg">
+      <div class="emoji">📚</div>
+      <div class="text">学习</div>
     </div>
-    <div class="nav-btn" onclick="location.href='diary.html'">
-      <img src="res/button/yes/diary.jpg" class="active-btn">
+    <div class="nav-btn active" onclick="location.href='diary.html'">
+      <div class="emoji">📓</div>
+      <div class="text">日记</div>
     </div>
     <div class="nav-btn" onclick="location.href='w.html'">
-      <img src="res/button/No/w.jpg">
+      <div class="emoji">⚙️</div>
+      <div class="text">状态</div>
     </div>
   </div>
 </div>
@@ -202,6 +381,28 @@ function getSeason(d){
   return '秋季';
 }
 
+// Google Drive链接转换函数
+function convertGoogleDriveLink(url) {
+  if (!url) return null;
+  
+  // 提取文件ID
+  const fileIdMatch = url.match(/\/d\/([^\/]+)/) || url.match(/id=([^&]+)/);
+  if (!fileIdMatch) return null;
+  
+  const fileId = fileIdMatch[1];
+  
+  // 检查文件类型
+  const isVideo = /\.(mp4|mov|avi|mkv|wmv|flv|webm)$/i.test(url);
+  
+  if (isVideo) {
+    // 视频预览链接
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  } else {
+    // 图片直接链接
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  }
+}
+
 // ============================================
 // DOM 元素引用
 // ============================================
@@ -213,6 +414,7 @@ const el = {
   weather: document.getElementById('weatherInput'),
   publishBtn: document.getElementById('publishBtn'),
   loadDraftBtn: document.getElementById('loadDraftBtn'),
+  insertMediaBtn: document.getElementById('insertMediaBtn'),
   feed: document.getElementById('feed'),
   connStatus: document.getElementById('connStatus'),
   trashOverlay: document.getElementById('trashOverlay'),
@@ -220,7 +422,13 @@ const el = {
   trashList: document.getElementById('trashList'),
   openTrashBtn: document.getElementById('openTrashBtn'),
   closeTrashBtn: document.getElementById('closeTrash'),
-  autoHint: document.getElementById('autoHint')
+  autoHint: document.getElementById('autoHint'),
+  // 媒体相关元素
+  mediaOverlay: document.getElementById('mediaOverlay'),
+  mediaUrlInput: document.getElementById('mediaUrlInput'),
+  mediaCaptionInput: document.getElementById('mediaCaptionInput'),
+  cancelMediaBtn: document.getElementById('cancelMediaBtn'),
+  insertMediaConfirmBtn: document.getElementById('insertMediaConfirmBtn')
 };
 
 // ============================================
@@ -232,12 +440,267 @@ let currentDraft = null;
 let online = navigator.onLine;
 
 // ============================================
+// 媒体管理功能
+// ============================================
+function showMediaDialog() {
+  el.mediaUrlInput.value = '';
+  el.mediaCaptionInput.value = '';
+  el.mediaOverlay.style.display = 'flex';
+}
+
+function hideMediaDialog() {
+  el.mediaOverlay.style.display = 'none';
+}
+
+function insertMedia() {
+  const url = el.mediaUrlInput.value.trim();
+  const caption = el.mediaCaptionInput.value.trim();
+  
+  if (!url) {
+    alert('请输入Google Drive链接');
+    return;
+  }
+  
+  // 转换Google Drive链接
+  const mediaUrl = convertGoogleDriveLink(url);
+  if (!mediaUrl) {
+    alert('无效的Google Drive链接。请确保链接格式正确，包含文件ID。');
+    return;
+  }
+  
+  // 检测是否为视频
+  const isVideo = /preview$/.test(mediaUrl) || /\.(mp4|mov|avi|mkv|wmv|flv|webm)$/i.test(url);
+  
+  // 创建媒体容器
+  const mediaContainer = document.createElement('div');
+  mediaContainer.className = 'media-container';
+  
+  const mediaId = `media-${Date.now()}`;
+  const mediaItem = document.createElement('div');
+  mediaItem.className = 'media-item';
+  mediaItem.dataset.mediaId = mediaId;
+  mediaItem.dataset.originalUrl = url;
+  mediaItem.dataset.mediaUrl = mediaUrl;
+  mediaItem.dataset.caption = caption;
+  mediaItem.dataset.type = isVideo ? 'video' : 'image';
+  
+  // 创建移除按钮
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'media-remove';
+  removeBtn.innerHTML = '×';
+  removeBtn.onclick = function(e) {
+    e.stopPropagation();
+    if (confirm('确定要移除这个媒体吗？')) {
+      mediaContainer.remove();
+      saveContentToDraft();
+    }
+  };
+  
+  if (isVideo) {
+    // 视频元素
+    const video = document.createElement('iframe');
+    video.className = 'drive-video';
+    video.src = mediaUrl;
+    video.frameBorder = '0';
+    video.allow = 'autoplay; encrypted-media';
+    video.allowFullscreen = true;
+    video.style.width = '100%';
+    video.style.height = '400px';
+    mediaItem.appendChild(video);
+  } else {
+    // 图片元素
+    const img = document.createElement('img');
+    img.className = 'drive-image';
+    img.src = mediaUrl;
+    img.alt = caption || 'Google Drive图片';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '400px';
+    img.style.display = 'block';
+    img.style.margin = '0 auto';
+    img.onerror = function() {
+      this.style.display = 'none';
+      const errorDiv = document.createElement('div');
+      errorDiv.style.padding = '20px';
+      errorDiv.style.textAlign = 'center';
+      errorDiv.style.color = '#999';
+      errorDiv.textContent = '图片加载失败，请检查链接权限';
+      mediaItem.appendChild(errorDiv);
+    };
+    mediaItem.appendChild(img);
+  }
+  
+  mediaItem.appendChild(removeBtn);
+  
+  // 如果有描述，添加描述
+  if (caption) {
+    const captionDiv = document.createElement('div');
+    captionDiv.className = 'media-caption';
+    captionDiv.textContent = caption;
+    mediaItem.appendChild(captionDiv);
+  }
+  
+  mediaContainer.appendChild(mediaItem);
+  
+  // 插入到编辑器
+  const content = el.content;
+  const selection = window.getSelection();
+  
+  if (selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    range.insertNode(mediaContainer);
+    
+    // 在媒体后添加一个换行
+    const br = document.createElement('br');
+    range.insertNode(br);
+    
+    // 移动光标到媒体后
+    range.setStartAfter(br);
+    range.setEndAfter(br);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  } else {
+    // 如果没有选中区域，添加到末尾
+    content.appendChild(mediaContainer);
+    const br = document.createElement('br');
+    content.appendChild(br);
+  }
+  
+  // 保存到草稿
+  saveContentToDraft();
+  hideMediaDialog();
+  
+  // 滚动到插入的媒体
+  mediaContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 从HTML中提取媒体数据
+function extractMediaFromContent(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const mediaItems = doc.querySelectorAll('.media-item');
+  const mediaData = [];
+  
+  mediaItems.forEach(item => {
+    mediaData.push({
+      id: item.dataset.mediaId,
+      originalUrl: item.dataset.originalUrl,
+      mediaUrl: item.dataset.mediaUrl,
+      caption: item.dataset.caption,
+      type: item.dataset.type
+    });
+  });
+  
+  return mediaData;
+}
+
+// 渲染媒体到内容
+function renderMediaToContent(contentDiv, contentHtml) {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = contentHtml;
+  
+  // 查找并替换媒体占位符
+  const mediaItems = tempDiv.querySelectorAll('.media-item');
+  mediaItems.forEach(item => {
+    const mediaId = item.dataset.mediaId;
+    const mediaUrl = item.dataset.mediaUrl;
+    const caption = item.dataset.caption;
+    const type = item.dataset.type;
+    
+    if (!mediaUrl) return;
+    
+    const mediaContainer = document.createElement('div');
+    mediaContainer.className = 'media-container';
+    
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-item';
+    mediaItem.dataset.mediaId = mediaId;
+    mediaItem.dataset.originalUrl = item.dataset.originalUrl || '';
+    mediaItem.dataset.mediaUrl = mediaUrl;
+    mediaItem.dataset.caption = caption;
+    mediaItem.dataset.type = type;
+    
+    // 创建移除按钮（仅在编辑模式下显示）
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'media-remove';
+    removeBtn.innerHTML = '×';
+    removeBtn.onclick = function(e) {
+      e.stopPropagation();
+      if (confirm('确定要移除这个媒体吗？')) {
+        mediaContainer.remove();
+        saveContentToDraft();
+      }
+    };
+    
+    if (type === 'video') {
+      const video = document.createElement('iframe');
+      video.className = 'drive-video';
+      video.src = mediaUrl;
+      video.frameBorder = '0';
+      video.allow = 'autoplay; encrypted-media';
+      video.allowFullscreen = true;
+      video.style.width = '100%';
+      video.style.height = '400px';
+      mediaItem.appendChild(video);
+    } else {
+      const img = document.createElement('img');
+      img.className = 'drive-image';
+      img.src = mediaUrl;
+      img.alt = caption || 'Google Drive图片';
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '400px';
+      img.style.display = 'block';
+      img.style.margin = '0 auto';
+      img.onerror = function() {
+        this.style.display = 'none';
+        const errorDiv = document.createElement('div');
+        errorDiv.style.padding = '20px';
+        errorDiv.style.textAlign = 'center';
+        errorDiv.style.color = '#999';
+        errorDiv.textContent = '图片加载失败，请检查链接权限';
+        mediaItem.appendChild(errorDiv);
+      };
+      mediaItem.appendChild(img);
+    }
+    
+    // 在编辑模式下添加移除按钮
+    if (contentDiv.isContentEditable) {
+      mediaItem.appendChild(removeBtn);
+    }
+    
+    if (caption) {
+      const captionDiv = document.createElement('div');
+      captionDiv.className = 'media-caption';
+      captionDiv.textContent = caption;
+      mediaItem.appendChild(captionDiv);
+    }
+    
+    mediaContainer.appendChild(mediaItem);
+    item.replaceWith(mediaContainer);
+  });
+  
+  return tempDiv.innerHTML;
+}
+
+// 保存内容到草稿
+function saveContentToDraft() {
+  currentDraft.content = el.content.innerHTML;
+  saveLocalDraft(currentDraft);
+}
+
+// ============================================
 // 草稿管理
 // ============================================
 function loadLocalDraft(){
   try{
     const raw = localStorage.getItem(DRAFT_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const draft = JSON.parse(raw);
+      // 确保旧数据兼容
+      if (!draft.id) draft.id = uuidv4();
+      if (!draft.createdAt) draft.createdAt = new Date().toISOString();
+      if (!draft.updatedAt) draft.updatedAt = new Date().toISOString();
+      return draft;
+    }
   } catch(e){
     console.log('读取本地草稿失败:', e);
   }
@@ -474,8 +937,72 @@ function renderPosts(posts){
     meta.appendChild(right);
     
     const text = document.createElement('div'); 
-    text.className = 'text'; 
-    text.innerHTML = p.content || '';
+    text.className = 'text';
+    
+    // 渲染内容，包括媒体
+    if (p.content) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = p.content;
+      
+      // 处理媒体内容（只读模式）
+      const mediaItems = tempDiv.querySelectorAll('.media-item');
+      mediaItems.forEach(item => {
+        const mediaUrl = item.dataset.mediaUrl;
+        const caption = item.dataset.caption;
+        const type = item.dataset.type;
+        
+        if (!mediaUrl) return;
+        
+        const mediaContainer = document.createElement('div');
+        mediaContainer.className = 'media-container';
+        
+        const mediaItem = document.createElement('div');
+        mediaItem.className = 'media-item';
+        
+        if (type === 'video') {
+          const video = document.createElement('iframe');
+          video.className = 'drive-video';
+          video.src = mediaUrl;
+          video.frameBorder = '0';
+          video.allow = 'autoplay; encrypted-media';
+          video.allowFullscreen = true;
+          video.style.width = '100%';
+          video.style.height = '400px';
+          mediaItem.appendChild(video);
+        } else {
+          const img = document.createElement('img');
+          img.className = 'drive-image';
+          img.src = mediaUrl;
+          img.alt = caption || 'Google Drive图片';
+          img.style.maxWidth = '100%';
+          img.style.maxHeight = '400px';
+          img.style.display = 'block';
+          img.style.margin = '0 auto';
+          img.onerror = function() {
+            this.style.display = 'none';
+            const errorDiv = document.createElement('div');
+            errorDiv.style.padding = '20px';
+            errorDiv.style.textAlign = 'center';
+            errorDiv.style.color = '#999';
+            errorDiv.textContent = '图片加载失败，请检查链接权限';
+            mediaItem.appendChild(errorDiv);
+          };
+          mediaItem.appendChild(img);
+        }
+        
+        if (caption) {
+          const captionDiv = document.createElement('div');
+          captionDiv.className = 'media-caption';
+          captionDiv.textContent = caption;
+          mediaItem.appendChild(captionDiv);
+        }
+        
+        mediaContainer.appendChild(mediaItem);
+        item.replaceWith(mediaContainer);
+      });
+      
+      text.innerHTML = tempDiv.innerHTML;
+    }
     
     const actions = document.createElement('div'); 
     actions.style.marginTop = '10px';
@@ -521,9 +1048,37 @@ window.addEventListener('offline', () => {
 el.loadDraftBtn.addEventListener('click', () => {
   currentDraft = loadLocalDraft();
   el.title.value = currentDraft.title || '';
-  el.content.innerHTML = currentDraft.content || '';
+  
+  // 渲染内容，包括媒体
+  if (currentDraft.content) {
+    el.content.innerHTML = renderMediaToContent(el.content, currentDraft.content);
+  } else {
+    el.content.innerHTML = '';
+  }
+  
   el.weather.value = currentDraft.weather || '';
   alert('草稿已载入');
+});
+
+// ============================================
+// 媒体功能事件监听
+// ============================================
+el.insertMediaBtn.addEventListener('click', showMediaDialog);
+el.cancelMediaBtn.addEventListener('click', hideMediaDialog);
+el.insertMediaConfirmBtn.addEventListener('click', insertMedia);
+
+// 点击模态框外部关闭
+el.mediaOverlay.addEventListener('click', (e) => {
+  if (e.target === el.mediaOverlay) {
+    hideMediaDialog();
+  }
+});
+
+// 按ESC键关闭模态框
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && el.mediaOverlay.style.display === 'flex') {
+    hideMediaDialog();
+  }
 });
 
 // ============================================
@@ -637,7 +1192,14 @@ function renderTrash(items){
   // 初始化草稿
   currentDraft = loadLocalDraft();
   el.title.value = currentDraft.title || '';
-  el.content.innerHTML = currentDraft.content || '';
+  
+  // 渲染内容，包括媒体
+  if (currentDraft.content) {
+    el.content.innerHTML = renderMediaToContent(el.content, currentDraft.content);
+  } else {
+    el.content.innerHTML = '';
+  }
+  
   el.weather.value = currentDraft.weather || '';
   
   // 初始化网络状态
@@ -661,8 +1223,7 @@ function renderTrash(items){
   };
   
   el.content.addEventListener('input', () => {
-    currentDraft.content = el.content.innerHTML;
-    saveLocalDraft(currentDraft);
+    saveContentToDraft();
     handleInput();
   });
   
@@ -676,6 +1237,13 @@ function renderTrash(items){
     currentDraft.weather = el.weather.value;
     saveLocalDraft(currentDraft);
     handleInput();
+  });
+  
+  // 监听内容变化，处理媒体移除
+  el.content.addEventListener('click', (e) => {
+    if (e.target.classList.contains('media-remove')) {
+      e.stopPropagation();
+    }
   });
 })();
 </script>

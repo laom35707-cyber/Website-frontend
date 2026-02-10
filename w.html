@@ -12,7 +12,7 @@
             font-family: serif; 
             min-height: 100vh;
         }
-        /* 2. 导航栏样式 (所有页面通用) */
+        /* 2. 导航栏样式 (所有页面通用) - 已修改为Emoji+文字 */
         .nav-container { 
             position: fixed; 
             bottom: 12px; 
@@ -26,6 +26,7 @@
             justify-content: center; 
             align-items: center; 
             z-index: 100; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .button-group { 
             width: 100%; 
@@ -34,14 +35,37 @@
             align-items: center; 
         }
         .nav-btn { 
-            height: 50%; 
+            height: 50px;
             cursor: pointer; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            min-width: 70px;
         }
-        .nav-btn img { 
-            height: 100%; 
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.03);
         }
-        .active-btn { 
-            mix-blend-mode: multiply; 
+        .nav-btn.active {
+            background: rgba(0,0,0,0.05);
+        }
+        .nav-btn-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+        .nav-btn-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            letter-spacing: 0.5px;
+        }
+        .nav-btn.active .nav-btn-text {
+            color: #000;
+            font-weight: 600;
         }
 
         /* 3. 原w页面样式 */
@@ -340,13 +364,25 @@
         </div>
     </div>
 
-    <!-- 导航栏 -->
+    <!-- 导航栏 - 已修改为Emoji+文字 -->
     <div class="nav-container">
         <div class="button-group">
-            <div class="nav-btn" onclick="location.href='index.html'"><img src="res/button/No/home.jpg"></div>
-            <div class="nav-btn" onclick="location.href='study.html'"><img src="res/button/No/Study.jpg"></div>
-            <div class="nav-btn" onclick="location.href='diary.html'"><img src="res/button/No/diary.jpg"></div>
-            <div class="nav-btn" onclick="location.href='w.html'"><img src="res/button/yes/w.jpg" class="active-btn"></div>
+            <div class="nav-btn" onclick="location.href='index.html'">
+                <div class="nav-btn-emoji">🏠</div>
+                <div class="nav-btn-text">首页</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='study.html'">
+                <div class="nav-btn-emoji">📚</div>
+                <div class="nav-btn-text">学习</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='diary.html'">
+                <div class="nav-btn-emoji">📝</div>
+                <div class="nav-btn-text">日记</div>
+            </div>
+            <div class="nav-btn active" onclick="location.href='w.html'">
+                <div class="nav-btn-emoji">📊</div>
+                <div class="nav-btn-text">状态</div>
+            </div>
         </div>
     </div>
 
