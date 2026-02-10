@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOME</title>
+    <style>
+        /* 1. 全局背景 */
+        body { 
+            margin: 0; 
+            background: linear-gradient(to top, #f2f2f2 0%, #ffffff 45%, #ffffff 100%); 
+            font-family: serif; 
+            height: 100vh;
+        }
+        /* 2. 导航栏样式 (所有页面通用) */
+        .nav-container { position: fixed; bottom: 12px; left: 2%; width: 96%; height: 80px; background: #fff; border-radius: 18px; border: 1px solid #e8e8e8; display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .button-group { width: 100%; display: flex; justify-content: space-around; align-items: center; }
+        .nav-btn { height: 50%; cursor: pointer; }
+        .nav-btn img { height: 100%; }
+        .active-btn { mix-blend-mode: multiply; } /* 色度抠图 */
+
+        .home-content { text-align: center; padding-top: 30vh; letter-spacing: 10px; }
+    </style>
+</head>
+<body>
+    <div class="home-content">
+        <h1>HOME</h1>
+        <p>欢迎回到私人空间</p>
+    </div>
+
+    <div class="nav-container">
+        <div class="button-group">
+            <div class="nav-btn" onclick="location.href='index.html'"><img src="res/button/yes/home.jpg" class="active-btn"></div>
+            <div class="nav-btn" onclick="location.href='study.html'"><img src="res/button/No/Study.jpg"></div>
+            <div class="nav-btn" onclick="location.href='diary.html'"><img src="res/button/No/diary.jpg"></div>
+            <div class="nav-btn" onclick="location.href='w.html'"><img src="res/button/No/w.jpg"></div>
+        </div>
+    </div>
+</body>
+</html>

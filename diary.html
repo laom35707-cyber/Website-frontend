@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>私人日记</title>
+<style>
+  :root{
+    --bg: #fbfbfd;
+    --card: #ffffff;
+    --muted: #8a8a98;
+    --accent: #2b2bff;
+    --soft: #f4f6fb;
+    --radius: 16px;
+    --shadow: 0 8px 30px rgba(20,20,40,0.06);
+    font-family: "Inter", "Helvetica Neue", Arial, serif;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#ffffff 0%, #fbfbfd 100%);color:#111;}
+  .wrap{ max-width:960px; margin:36px auto; padding:0 20px 140px; }
+
+  header.top{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px;
+  }
+  header.top h1{ margin:0; font-size:20px; letter-spacing:1px; font-weight:600; color:#111; }
+  header.top .small{ color:var(--muted); font-size:13px; }
+
+  .editor {
+    background:var(--card); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); border:1px solid #f0f0f6;
+  }
+  .meta-row{ display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .meta-left{ display:flex; gap:12px; align-items:center; color:var(--muted); font-size:13px; }
+  .pill{ background:var(--soft); color:#444; padding:6px 10px; border-radius:999px; font-size:13px; border:1px solid #f0f0f6; }
+  .date-line{ color:var(--muted); font-size:13px; }
+
+  .title-input{ width:100%; border:none; font-size:18px; font-weight:600; padding:6px 0; outline:none; margin-bottom:6px; }
+  .content{
+    min-height:220px; border-radius:12px; padding:12px; outline:none; font-size:16px; line-height:1.9; color:#222; background:linear-gradient(180deg,#fff 0,#fbfbfd 100%); border:1px dashed #f0f0f6;
+  }
+  .content:empty:before { content: "写点什么，记录今天的温度、瞬间与细节…"; color:#bdbdbf; }
+
+  .tool-row{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; gap:12px; flex-wrap:wrap; }
+  .left-tools{ display:flex; gap:8px; align-items:center; }
+  .btn {
+    background: #fff; border:1px solid #eee; padding:8px 12px; border-radius:12px; cursor:pointer; font-size:13px;
+  }
+  .btn.primary { background: linear-gradient(90deg,#2b2bff,#6b5ce7); color:#fff; border:0; box-shadow:0 8px 18px rgba(107,92,231,0.12); }
+  .small-muted{ color:var(--muted); font-size:13px; }
+
+  .feed{ margin-top:26px; display:grid; gap:16px; }
+  .post {
+    background:var(--card); border-radius:14px; padding:18px; box-shadow: 0 6px 20px rgba(20,20,40,0.04);
+    border: 1px solid #fafafa;
+  }
+  .post .meta{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .post .title{ font-weight:600; margin-bottom:8px; font-size:16px; }
+  .post .text{ color:#222; line-height:1.7; white-space:pre-wrap; margin-bottom:10px; }
+
+  .trash-modal-overlay {
+    position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.3); z-index: 1000; display:none; align-items:center; justify-content:center;
+  }
+  .trash-panel{
+    width: 90%; max-width: 500px; max-height: 70vh; overflow:auto; background:var(--card);
+    border-radius:20px 20px 12px 12px; box-shadow:0 -10px 40px rgba(0,0,0,0.12); padding:20px; border:1px solid #f0f0f6;
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 1001;
+    display: none;
+  }
+  .trash-header {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #f0f0f6;
+  }
+  .trash-header h3 { margin:0; font-size:18px; }
+  .trash-item{ display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-bottom:1px solid #fafafa; }
+  .trash-item .time{ color:var(--muted); font-size:12px; }
+  .trash-actions { display:flex; gap:8px; margin-top:4px; }
+
+  .nav-container {
+    position: fixed; bottom: 12px; left: 2%; width: 96%; height: 80px; background: #fff; border-radius: 18px; border: 1px solid #e8e8e8;
+    display: flex; justify-content: center; align-items: center; z-index: 100;
+  }
+  .button-group { width: 100%; display: flex; justify-content: space-around; align-items: center; max-width:600px; }
+  .nav-btn { height: 50%; cursor: pointer; }
+  .nav-btn img { height: 100%; }
+  .active-btn { mix-blend-mode: multiply; }
+
+  @media (max-width:640px){
+    .trash-panel{ width:95%; max-height:60vh; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>私人日记</h1>
+      <div class="small">自动备份 · 跨设备同步</div>
+    </div>
+    <div class="small-muted" id="connStatus">连接：检查中…</div>
+  </header>
+
+  <section class="editor" aria-label="写日记">
+    <div class="meta-row">
+      <div class="meta-left">
+        <div class="pill" id="statusPill">草稿</div>
+        <div class="date-line" id="dateLine">正在生成时间…</div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="weatherInput" placeholder="天气（手动填写）" style="border:none;border-bottom:1px solid #eee;padding:6px 8px;border-radius:8px;outline:none;font-size:13px" />
+      </div>
+    </div>
+
+    <input id="title" class="title-input" placeholder="写一个标题（可选）" />
+
+    <div id="content" class="content" contenteditable="true"></div>
+
+    <div class="tool-row">
+      <div class="left-tools">
+        <button class="btn" id="loadDraftBtn">载入草稿</button>
+        <button class="btn" id="openTrashBtn">垃圾桶</button>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="small-muted" id="autoHint">自动备份：停止输入后2秒备份 · 发布后清除云端备份</div>
+        <button id="publishBtn" class="btn primary">发布</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="feed" id="feed">
+  </section>
+</div>
+
+<div id="trashOverlay" class="trash-modal-overlay"></div>
+<div id="trashPanel" class="trash-panel">
+  <div class="trash-header">
+    <h3>垃圾桶</h3>
+    <button id="closeTrash" class="btn">关闭</button>
+  </div>
+  <div id="trashList">
+  </div>
+</div>
+
+<div class="nav-container">
+  <div class="button-group">
+    <div class="nav-btn" onclick="location.href='index.html'">
+      <img src="res/button/No/home.jpg">
+    </div>
+    <div class="nav-btn" onclick="location.href='study.html'">
+      <img src="res/button/No/Study.jpg">
+    </div>
+    <div class="nav-btn" onclick="location.href='diary.html'">
+      <img src="res/button/yes/diary.jpg" class="active-btn">
+    </div>
+    <div class="nav-btn" onclick="location.href='w.html'">
+      <img src="res/button/No/w.jpg">
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// 常量定义
+// ============================================
+const DRAFT_KEY = 'diary:draft:v4';
+const PUBLISHED_FEED = 'diary:published_feed:v4';
+const BACKUP_DELAY = 2000; // 停止输入后2秒备份
+
+// ============================================
+// 工具函数
+// ============================================
+function uuidv4(){ 
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{ 
+    const r = Math.random() * 16 | 0; 
+    const v = c === 'x' ? r : (r & 0x3 | 0x8); 
+    return v.toString(16); 
+  }); 
+}
+
+function formatFullTimestamp(d){
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const date = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  const weekday = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][d.getDay()];
+  
+  const monthNum = d.getMonth() + 1;
+  let season;
+  if (monthNum === 12 || monthNum <= 2) season = '冬季';
+  else if (monthNum >= 3 && monthNum <= 5) season = '春季';
+  else if (monthNum >= 6 && monthNum <= 8) season = '夏季';
+  else season = '秋季';
+  
+  return `${year}年${month}月${date}日 ${hh}:${mm}:${ss} · ${weekday} · ${season}`;
+}
+
+function getSeason(d){
+  const m = d.getMonth() + 1;
+  if (m === 12 || m <= 2) return '冬季';
+  if (m >= 3 && m <= 5) return '春季';
+  if (m >= 6 && m <= 8) return '夏季';
+  return '秋季';
+}
+
+// ============================================
+// DOM 元素引用
+// ============================================
+const el = {
+  statusPill: document.getElementById('statusPill'),
+  dateLine: document.getElementById('dateLine'),
+  title: document.getElementById('title'),
+  content: document.getElementById('content'),
+  weather: document.getElementById('weatherInput'),
+  publishBtn: document.getElementById('publishBtn'),
+  loadDraftBtn: document.getElementById('loadDraftBtn'),
+  feed: document.getElementById('feed'),
+  connStatus: document.getElementById('connStatus'),
+  trashOverlay: document.getElementById('trashOverlay'),
+  trashPanel: document.getElementById('trashPanel'),
+  trashList: document.getElementById('trashList'),
+  openTrashBtn: document.getElementById('openTrashBtn'),
+  closeTrashBtn: document.getElementById('closeTrash'),
+  autoHint: document.getElementById('autoHint')
+};
+
+// ============================================
+// 状态变量
+// ============================================
+let autosaveTimer = null;
+let backupTimeout = null;
+let currentDraft = null;
+let online = navigator.onLine;
+
+// ============================================
+// 草稿管理
+// ============================================
+function loadLocalDraft(){
+  try{
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){
+    console.log('读取本地草稿失败:', e);
+  }
+  
+  const id = uuidv4();
+  const now = new Date().toISOString();
+  const d = { 
+    id, 
+    title: '', 
+    content: '', 
+    weather: '', 
+    createdAt: now, 
+    updatedAt: now 
+  };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  return d;
+}
+
+function saveLocalDraft(d){
+  d.updatedAt = new Date().toISOString();
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+}
+
+// ============================================
+// 云端备份功能（防抖）
+// ============================================
+async function backupToCloud() {
+  if (!navigator.onLine) return;
+  
+  const payload = {
+    id: currentDraft.id,
+    title: currentDraft.title,
+    content: currentDraft.content,
+    weather: currentDraft.weather,
+    updatedAt: new Date().toISOString(),
+    readableTimestamp: formatFullTimestamp(new Date())
+  };
+  
+  try {
+    const response = await fetch('/api/backup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.ok) {
+        // 备份成功，更新状态显示
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        el.autoHint.textContent = `已备份 ${timeStr}`;
+        el.autoHint.style.color = '#10b981';
+        
+        // 3秒后恢复原色
+        setTimeout(() => {
+          el.autoHint.style.color = '';
+          el.autoHint.textContent = '自动备份：停止输入后2秒备份 · 发布后清除云端备份';
+        }, 3000);
+      }
+    }
+  } catch (e) {
+    console.log('云端备份失败（可能离线）:', e.message);
+  }
+}
+
+function scheduleBackup() {
+  // 清除之前的定时器
+  if (backupTimeout) {
+    clearTimeout(backupTimeout);
+  }
+  
+  // 设置新的定时器
+  backupTimeout = setTimeout(() => {
+    if (navigator.onLine) {
+      backupToCloud();
+    }
+  }, BACKUP_DELAY);
+}
+
+// ============================================
+// 自动保存功能
+// ============================================
+function startAutosave() {
+  if (autosaveTimer) return;
+  
+  // 本地自动保存（实时）
+  autosaveTimer = setInterval(() => {
+    currentDraft.title = el.title.value;
+    currentDraft.content = el.content.innerHTML;
+    currentDraft.weather = el.weather.value;
+    currentDraft.updatedAt = new Date().toISOString();
+    saveLocalDraft(currentDraft);
+    
+    el.dateLine.innerText = formatFullTimestamp(new Date());
+  }, 500);
+}
+
+async function stopAutosaveAndCleanup(){
+  if (autosaveTimer) { 
+    clearInterval(autosaveTimer); 
+    autosaveTimer = null; 
+  }
+  
+  if (backupTimeout) {
+    clearTimeout(backupTimeout);
+    backupTimeout = null;
+  }
+  
+  localStorage.removeItem(DRAFT_KEY);
+  
+  try { 
+    await fetch('/api/delete-backup', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify({ id: currentDraft.id }) 
+    }); 
+  } catch(e) {
+    console.log('清除云端备份失败:', e.message);
+  }
+}
+
+// ============================================
+// 发布功能
+// ============================================
+el.publishBtn.addEventListener('click', async ()=>{
+  if(!confirm('确认发布？发布后草稿备份会被清除，内容将出现在已发布列表。')) return;
+  
+  const payload = {
+    id: currentDraft.id,
+    title: currentDraft.title,
+    content: currentDraft.content,
+    weather: currentDraft.weather,
+    publishedAtISO: new Date().toISOString(),
+    publishedReadable: formatFullTimestamp(new Date())
+  };
+  
+  try{
+    const res = await fetch('/api/publish', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(payload) 
+    });
+    
+    if(!res.ok) throw new Error('发布请求失败');
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error || '发布错误');
+    
+    await stopAutosaveAndCleanup();
+    const feed = JSON.parse(localStorage.getItem(PUBLISHED_FEED) || '[]');
+    feed.push(payload);
+    localStorage.setItem(PUBLISHED_FEED, JSON.stringify(feed));
+    
+    await loadPosts();
+    alert('发布成功');
+    
+    // 重置编辑器
+    currentDraft = loadLocalDraft();
+    el.title.value = '';
+    el.content.innerHTML = '';
+    el.weather.value = '';
+    saveLocalDraft(currentDraft);
+    
+  } catch(e){
+    alert('发布失败：' + e.message);
+    console.error(e);
+  }
+});
+
+// ============================================
+// 文章管理
+// ============================================
+async function deletePost(id, titleText){
+  if(!confirm(`确认删除 "${titleText||'无标题'}"？（此操作会移到垃圾桶）`)) return;
+  if(!confirm('请再次确认：你确定要把这篇日记移到垃圾桶吗？可在垃圾桶恢复，24小时后自动清除。')) return;
+  
+  try{
+    const res = await fetch('/api/delete-post', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify({ id }) 
+    });
+    
+    if(!res.ok) throw new Error('删除请求失败');
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error || '删除错误');
+    
+    await loadPosts();
+    alert('已移动到垃圾桶');
+  } catch(e){
+    alert('删除失败：' + e.message);
+    console.error(e);
+  }
+}
+
+async function loadPosts(){
+  try{
+    const res = await fetch('/api/posts');
+    if(!res.ok) throw new Error('获取文章列表失败');
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error || '文章列表错误');
+    renderPosts(j.posts || []);
+  } catch(e){
+    console.warn('加载文章失败:', e);
+    // 降级：使用本地缓存
+    const cached = JSON.parse(localStorage.getItem(PUBLISHED_FEED) || '[]');
+    renderPosts(cached);
+  }
+}
+
+function renderPosts(posts){
+  el.feed.innerHTML = '';
+  
+  if (!posts || posts.length === 0) {
+    el.feed.innerHTML = '<div style="color:#888;padding:40px;text-align:center">还没有日记，写一篇吧！</div>';
+    return;
+  }
+  
+  for(const p of posts.slice().reverse()){
+    const node = document.createElement('article'); 
+    node.className = 'post';
+    
+    const meta = document.createElement('div'); 
+    meta.className = 'meta';
+    
+    const left = document.createElement('div'); 
+    left.innerHTML = `<div class="title">${p.title || '无标题'}</div>`;
+    
+    const right = document.createElement('div'); 
+    right.className = 'small-muted'; 
+    right.textContent = p.publishedReadable || p.publishedAtISO || '未知时间';
+    
+    meta.appendChild(left); 
+    meta.appendChild(right);
+    
+    const text = document.createElement('div'); 
+    text.className = 'text'; 
+    text.innerHTML = p.content || '';
+    
+    const actions = document.createElement('div'); 
+    actions.style.marginTop = '10px';
+    
+    const delBtn = document.createElement('button'); 
+    delBtn.className = 'btn'; 
+    delBtn.textContent = '删除';
+    delBtn.onclick = () => deletePost(p.id, p.title);
+    
+    actions.appendChild(delBtn);
+    
+    node.appendChild(meta); 
+    node.appendChild(text);
+    node.appendChild(actions);
+    
+    el.feed.appendChild(node);
+  }
+}
+
+// ============================================
+// 网络状态管理
+// ============================================
+window.addEventListener('online', async () => {
+  online = true;
+  el.connStatus.textContent = '在线';
+  el.connStatus.style.color = 'green';
+  
+  // 重新联网后立即备份一次
+  if (currentDraft && (currentDraft.title || currentDraft.content)) {
+    backupToCloud();
+  }
+});
+
+window.addEventListener('offline', () => { 
+  online = false; 
+  el.connStatus.textContent = '离线'; 
+  el.connStatus.style.color = 'crimson'; 
+});
+
+// ============================================
+// 草稿加载
+// ============================================
+el.loadDraftBtn.addEventListener('click', () => {
+  currentDraft = loadLocalDraft();
+  el.title.value = currentDraft.title || '';
+  el.content.innerHTML = currentDraft.content || '';
+  el.weather.value = currentDraft.weather || '';
+  alert('草稿已载入');
+});
+
+// ============================================
+// 垃圾桶功能
+// ============================================
+el.openTrashBtn.addEventListener('click', async () => {
+  el.trashOverlay.style.display = 'block';
+  el.trashPanel.style.display = 'block';
+  await loadTrash();
+});
+
+el.closeTrashBtn.addEventListener('click', () => { 
+  el.trashOverlay.style.display = 'none';
+  el.trashPanel.style.display = 'none';
+});
+
+el.trashOverlay.addEventListener('click', () => { 
+  el.trashOverlay.style.display = 'none';
+  el.trashPanel.style.display = 'none';
+});
+
+async function loadTrash(){
+  el.trashList.innerHTML = '加载中…';
+  try{
+    const res = await fetch('/api/trash');
+    if(!res.ok) throw new Error('加载垃圾桶失败');
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error || '垃圾桶错误');
+    renderTrash(j.trash || []);
+  } catch(e){
+    el.trashList.innerHTML = '<div style="color:#888;padding:20px;text-align:center">加载失败，请检查网络</div>';
+    console.error('加载垃圾桶失败:', e);
+  }
+}
+
+function renderTrash(items){
+  el.trashList.innerHTML = '';
+  
+  if(!items.length){ 
+    el.trashList.innerHTML = '<div style="color:#888;padding:20px;text-align:center">垃圾桶空空如也</div>'; 
+    return; 
+  }
+  
+  for(const it of items){
+    const row = document.createElement('div'); 
+    row.className = 'trash-item';
+    
+    const left = document.createElement('div'); 
+    left.style.flex = '1';
+    left.innerHTML = `
+      <div style="font-weight:600">${it.title || '无标题'}</div>
+      <div class="time">删除时间：${new Date(it.deletedAt).toLocaleString()}</div>
+    `;
+    
+    const actions = document.createElement('div'); 
+    actions.className = 'trash-actions';
+    
+    const restore = document.createElement('button'); 
+    restore.className = 'btn'; 
+    restore.textContent = '恢复';
+    restore.onclick = async () => {
+      if(!confirm('确认恢复此日记？')) return;
+      try{
+        const r = await fetch('/api/restore-post', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify({ id: it.id })
+        });
+        const j = await r.json();
+        if(!j.ok) throw new Error(j.error || '恢复错误');
+        alert('已恢复');
+        await loadTrash();
+        await loadPosts();
+      } catch(e){ 
+        alert('恢复失败：' + e.message); 
+      }
+    };
+    
+    const perm = document.createElement('button'); 
+    perm.className = 'btn'; 
+    perm.textContent = '永久删除';
+    perm.onclick = async () => {
+      if(!confirm('永久删除后无法恢复。确认永久删除？')) return;
+      try{
+        const r = await fetch('/api/delete-permanent', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify({ id: it.id })
+        });
+        const j = await r.json();
+        if(!j.ok) throw new Error(j.error || '永久删除错误');
+        alert('已永久删除');
+        await loadTrash();
+      } catch(e){ 
+        alert('删除失败：' + e.message); 
+      }
+    };
+    
+    actions.appendChild(restore); 
+    actions.appendChild(perm);
+    row.appendChild(left); 
+    row.appendChild(actions);
+    el.trashList.appendChild(row);
+  }
+}
+
+// ============================================
+// 初始化
+// ============================================
+(function init(){
+  // 初始化草稿
+  currentDraft = loadLocalDraft();
+  el.title.value = currentDraft.title || '';
+  el.content.innerHTML = currentDraft.content || '';
+  el.weather.value = currentDraft.weather || '';
+  
+  // 初始化网络状态
+  el.connStatus.textContent = navigator.onLine ? '在线' : '离线';
+  el.connStatus.style.color = navigator.onLine ? 'green' : 'crimson';
+  
+  // 启动自动保存
+  startAutosave();
+  
+  // 加载已发布文章
+  loadPosts();
+  
+  // 更新时间显示
+  setInterval(() => {
+    el.dateLine.innerText = formatFullTimestamp(new Date());
+  }, 1000);
+  
+  // 输入事件监听
+  const handleInput = () => {
+    scheduleBackup(); // 触发防抖备份
+  };
+  
+  el.content.addEventListener('input', () => {
+    currentDraft.content = el.content.innerHTML;
+    saveLocalDraft(currentDraft);
+    handleInput();
+  });
+  
+  el.title.addEventListener('input', () => {
+    currentDraft.title = el.title.value;
+    saveLocalDraft(currentDraft);
+    handleInput();
+  });
+  
+  el.weather.addEventListener('input', () => {
+    currentDraft.weather = el.weather.value;
+    saveLocalDraft(currentDraft);
+    handleInput();
+  });
+})();
+</script>
+</body>
+</html>

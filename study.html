@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寒假计划</title>
+    <style>
+        /* 1. 全局背景 */
+        body { 
+            margin: 0; 
+            background: linear-gradient(to top, #f2f2f2 0%, #ffffff 45%, #ffffff 100%); 
+            font-family: serif; 
+            min-height: 100vh;
+        }
+        /* 2. 导航栏样式 (所有页面通用) */
+        .nav-container { 
+            position: fixed; 
+            bottom: 12px; 
+            left: 2%; 
+            width: 96%; 
+            height: 80px; 
+            background: #fff; 
+            border-radius: 18px; 
+            border: 1px solid #e8e8e8; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+        }
+        .button-group { 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+        }
+        .nav-btn { 
+            height: 50%; 
+            cursor: pointer; 
+        }
+        .nav-btn img { 
+            height: 100%; 
+        }
+        .active-btn { 
+            mix-blend-mode: multiply; 
+        }
+
+        /* 3. 原study页面样式 */
+        :root { 
+            --primary: #2c3e50; 
+            --accent: #e74c3c; 
+            --success: #27ae60; 
+            --bg: #f4f7f9; 
+        }
+        .study-body-content {
+            font-family: -apple-system, sans-serif; 
+            background: transparent;
+            margin: 0; 
+            padding: 10px;
+            padding-bottom: 100px; /* 给底部导航留空间 */
+            font-size: 14px; 
+        }
+        .container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 12px; 
+            padding: 15px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+        }
+        
+        h2 { 
+            font-size: 1.3em; 
+            margin: 0 0 5px; 
+            text-align: center; 
+            color: var(--primary); 
+        }
+        .subtitle { 
+            font-size: 0.8em; 
+            color: #888; 
+            text-align: center; 
+            margin-bottom: 15px; 
+        }
+
+        /* 随机灵感区 */
+        .random-box { 
+            background: #fff5f5; 
+            border: 1px solid #ffe3e3; 
+            padding: 12px; 
+            border-radius: 8px; 
+            text-align: center; 
+            margin-bottom: 15px; 
+        }
+        #suggestion { 
+            font-weight: bold; 
+            color: var(--accent); 
+            margin-bottom: 8px; 
+            min-height: 1.4em; 
+        }
+        .btn-pick { 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 6px 16px; 
+            border-radius: 20px; 
+            font-size: 0.9em; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+
+        /* 任务列表 */
+        .section-header { 
+            font-size: 0.95em; 
+            font-weight: bold; 
+            color: #555; 
+            margin: 15px 0 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .task-group { 
+            border: 1px solid #eee; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            margin-bottom: 10px; 
+        }
+        
+        .task-row { 
+            border-bottom: 1px solid #f2f2f2; 
+        }
+        .task-row:last-child { 
+            border-bottom: none; 
+        }
+        
+        .task-main { 
+            display: flex; 
+            align-items: center; 
+            padding: 10px; 
+            cursor: pointer; 
+        }
+        .task-main:hover { 
+            background: #f9f9f9; 
+        }
+        
+        /* 打卡框 */
+        .check-box { 
+            width: 20px; 
+            height: 20px; 
+            border: 2px solid #ccc; 
+            border-radius: 4px; 
+            margin-right: 12px; 
+            flex-shrink: 0; 
+            position: relative; 
+            transition: 0.2s; 
+        }
+        .task-row.done .check-box { 
+            background: var(--success); 
+            border-color: var(--success); 
+        }
+        .task-row.done .check-box::after { 
+            content: '✓'; 
+            color: white; 
+            position: absolute; 
+            left: 4px; 
+            top: -2px; 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+        
+        /* 任务文字 */
+        .task-text { 
+            flex-grow: 1; 
+            color: #333; 
+            font-weight: 500; 
+        }
+        .task-row.done .task-text { 
+            text-decoration: line-through; 
+            color: #aaa !important; 
+        }
+        .time-tag { 
+            font-size: 0.8em; 
+            color: #999; 
+            margin-left: 8px; 
+        }
+
+        /* 详情区 */
+        .task-detail { 
+            display: none; 
+            padding: 10px 15px 12px 42px; 
+            background: #f8faff; 
+            font-size: 0.85em; 
+            color: #666; 
+            line-height: 1.5; 
+            border-top: 1px solid #edf2f7; 
+        }
+        .task-detail.active { 
+            display: block; 
+        }
+        .task-detail b { 
+            color: var(--primary); 
+        }
+
+        /* 复盘特殊样式 */
+        .review-row { 
+            border-left: 4px solid var(--accent); 
+        }
+
+        .footer { 
+            margin-top: 20px; 
+            text-align: center; 
+            font-size: 0.8em; 
+            color: #999; 
+            padding-top: 10px; 
+            border-top: 1px solid #eee; 
+        }
+        .btn-reset { 
+            color: #999; 
+            border: none; 
+            background: none; 
+            text-decoration: underline; 
+            cursor: pointer; 
+            padding: 10px; 
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面内容容器 -->
+    <div class="study-body-content">
+        <div class="container">
+            <h2>🎯 寒假计划</h2>
+            <div class="subtitle">打卡 | PDF 详情 | 每日复盘</div>
+
+            <div class="random-box">
+                <div id="suggestion">不知道先做哪项？</div>
+                <button class="btn-pick" onclick="pickRandom()">🎲 帮我选一项选做任务</button>
+            </div>
+
+            <div class="section-header" style="color: var(--accent);">📅 每日必做 (每天自动重置)</div>
+            <div class="task-group" id="must-list"></div>
+
+            <div class="section-header"><span>🏆 周期选做池 (手动重置)</span> <span id="pool-progress">0/13</span></div>
+            <div class="task-group" id="pool-list"></div>
+
+            <div class="footer">
+                <div>周一至周日全力运行</div>
+                <button class="btn-reset" onclick="resetPool()">重置 8 天周期选做进度</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <div class="nav-container">
+        <div class="button-group">
+            <div class="nav-btn" onclick="location.href='index.html'"><img src="res/button/No/home.jpg"></div>
+            <div class="nav-btn" onclick="location.href='study.html'"><img src="res/button/yes/Study.jpg" class="active-btn"></div>
+            <div class="nav-btn" onclick="location.href='diary.html'"><img src="res/button/No/diary.jpg"></div>
+            <div class="nav-btn" onclick="location.href='w.html'"><img src="res/button/No/w.jpg"></div>
+        </div>
+    </div>
+
+    <script>
+        // 每日任务
+        const mustTasks = [
+            { id: 'm1', cat: "语", name: "背古诗/文言文", time: "30m", detail: "<b>PDF要求：</b>最好在早晨。背诵并确保能默写核心句子。" },
+            { id: 'm2', cat: "英", name: "背单词(六年级起)", time: "40m", detail: "<b>PDF要求：</b>按教材顺序，注意单词拼写和在文中的应用。" },
+            { id: 'm3', cat: "考", name: "🌙 晚间小复盘", time: "10m", isReview: true, detail: "<b>复盘内容：</b><br>1. 检查今日所有【最优解】交流是否完成？<br>2. 记录一个最有成就感的知识点。<br>3. 确定明早最先解决的任务。" }
+        ];
+
+        // 选做池
+        const poolTasks = [
+            { id: 1, cat: "数", name: "数学复习练习+AI交流", time: "120m", detail: "<b>PDF攻略：</b>90m模考+30m批改。<b>关键：</b>不论对错都要问AI最优解方案，对比思路。" },
+            { id: 2, cat: "数", name: "数学预习新课+AI交流", time: "120m", detail: "<b>PDF攻略：</b>看录播并做题。同样要求与AI深入探讨，寻找解题最优切入点。" },
+            { id: 3, cat: "语", name: "写作文+AI二次修改", time: "90m", detail: "<b>PDF攻略：</b>60m写+30m改。写前看教学，写后让AI分析不足，必须完成<b>二次修改</b>。" },
+            { id: 4, cat: "语", name: "语文做题方法练习", time: "50m", detail: "<b>PDF攻略：</b>看视频或问AI题型套路，针对弱项进行专项爆破。" },
+            { id: 5, cat: "英", name: "英语语法录播+练习", time: "120m", detail: "<b>PDF攻略：</b>看晓燕语法课，必须同步完成配套练习，不要只听不练。" },
+            { id: 6, cat: "英", name: "英语课外练习(晓燕)", time: "40m", detail: "<b>PDF攻略：</b>针对性完成晓燕书里的进阶练习。" },
+            { id: 7, cat: "英", name: "英语阅读理解练习书", time: "40m", detail: "<b>PDF攻略：</b>限时阅读，标注生词，锻炼语感。" },
+            { id: 8, cat: "英", name: "英语做题方法录播+练习", time: "120m", detail: "<b>PDF攻略：</b>学习录播中的解题技巧，并在同步练习中应用。" },
+            { id: 9, cat: "英", name: "英语阅读理解录播+练习", time: "120m", detail: "<b>PDF攻略：</b>深度解剖文章结构，跟录播课同步做精读。" },
+            { id: 10, cat: "物", name: "物理八上理解+AI抽问", time: "120m", detail: "<b>PDF攻略：</b>看录播。对模糊点复述给AI听，并让AI进行<b>模拟抽问</b>。" },
+            { id: 11, cat: "物", name: "物理八下理解+AI抽问", time: "120m", detail: "<b>PDF攻略：</b>同上，重点在理解物理逻辑而非背公式。" },
+            { id: 12, cat: "化", name: "化学八上理解+AI抽问", time: "120m", detail: "<b>PDF攻略：</b>看录播。向AI转述实验性质，让AI纠错并进行随机抽问。" },
+            { id: 13, cat: "化", name: "化学八下理解+AI抽问", time: "120m", detail: "<b>PDF攻略：</b>同上，利用AI模拟真实考查场景。" }
+        ];
+
+        function init() {
+            const today = new Date().toDateString();
+            if (localStorage.getItem('last_visit') !== today) {
+                localStorage.setItem('daily_status', '[]');
+                localStorage.setItem('last_visit', today);
+            }
+            render();
+        }
+
+        function render() {
+            const dDone = JSON.parse(localStorage.getItem('daily_status') || '[]');
+            const pDone = JSON.parse(localStorage.getItem('pool_status') || '[]');
+
+            const buildList = (data, storageArr, type) => {
+                return data.map(t => `
+                    <div class="task-row ${storageArr.includes(t.id)?'done':''} ${t.isReview?'review-row':''}">
+                        <div class="task-main" onclick="toggleDetail('${type}-${t.id}')">
+                            <div class="check-box" onclick="event.stopPropagation(); toggleTask('${t.id}', '${type}', ${t.isReview})"></div>
+                            <div class="task-text">
+                                [${t.cat}] ${t.name} <span class="time-tag">${t.time}</span>
+                            </div>
+                        </div>
+                        <div id="detail-${type}-${t.id}" class="task-detail">${t.detail}</div>
+                    </div>
+                `).join('');
+            };
+
+            document.getElementById('must-list').innerHTML = buildList(mustTasks, dDone, 'must');
+            document.getElementById('pool-list').innerHTML = buildList(poolTasks, pDone, 'pool');
+            document.getElementById('pool-progress').innerText = `${pDone.length}/${poolTasks.length}`;
+        }
+
+        function toggleDetail(uid) {
+            const target = document.getElementById('detail-' + uid);
+            const isOpen = target.classList.contains('active');
+            document.querySelectorAll('.task-detail').forEach(d => d.classList.remove('active'));
+            if (!isOpen) target.classList.add('active');
+        }
+
+        function toggleTask(id, type, isReview) {
+            let key = type === 'must' ? 'daily_status' : 'pool_status';
+            let done = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            if (isReview && !done.includes(id)) {
+                const notes = prompt("请输入今晚复盘心得（或一个今天搞懂的重点）：");
+                if (!notes) return;
+            }
+
+            done = done.includes(id) ? done.filter(i => i != id) : [...done, id];
+            localStorage.setItem(key, JSON.stringify(done));
+            render();
+        }
+
+        function pickRandom() {
+            const pDone = JSON.parse(localStorage.getItem('pool_status') || '[]');
+            const left = poolTasks.filter(t => !pDone.includes(t.id));
+            if (left.length === 0) {
+                document.getElementById('suggestion').innerText = "任务池已空！全做完啦🚀";
+                return;
+            }
+            const lucky = left[Math.floor(Math.random() * left.length)];
+            document.getElementById('suggestion').innerText = `💡 抽到：[${lucky.cat}] ${lucky.name}`;
+        }
+
+        function resetPool() {
+            if(confirm("确定重置 8 天周期的选做进度吗？")) {
+                localStorage.setItem('pool_status', '[]');
+                render();
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
