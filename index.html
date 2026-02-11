@@ -55,11 +55,15 @@
         .nav-btn .emoji {
             font-size: 24px;
             margin-bottom: 4px;
+            user-select: none; /* 禁止文字选择 */
+            pointer-events: none; /* 禁止点击事件 */
         }
         .nav-btn .text {
             font-size: 12px;
             font-weight: 500;
             color: #333;
+            user-select: none; /* 禁止文字选择 */
+            pointer-events: none; /* 禁止点击事件 */
         }
         .nav-btn.active .text {
             color: #2b2bff;

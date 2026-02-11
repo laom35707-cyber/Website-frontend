@@ -192,6 +192,11 @@
     align-items: center; 
     z-index: 100;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    /* 防止文字被选中 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
   .button-group { 
     width: 100%; 
@@ -199,6 +204,11 @@
     justify-content: space-around; 
     align-items: center; 
     max-width:600px;
+    /* 防止文字被选中 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
   .nav-btn { 
     display: flex;
@@ -210,6 +220,20 @@
     border-radius: 12px;
     transition: all 0.2s ease;
     min-width: 60px;
+    /* 防止文字被选中 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* 防止点击时出现蓝色高亮（移动端） */
+    -webkit-tap-highlight-color: transparent;
+    /* 防止文字被双击选中 */
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    /* 防止长按弹出菜单 */
+    -webkit-touch-callout: none;
   }
   .nav-btn:hover {
     background: rgba(0,0,0,0.03);
@@ -220,11 +244,25 @@
   .nav-btn .emoji {
     font-size: 24px;
     margin-bottom: 4px;
+    /* 防止emoji被选中 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* 防止emoji被拖动 */
+    pointer-events: none;
   }
   .nav-btn .text {
     font-size: 12px;
     font-weight: 500;
     color: #333;
+    /* 防止文字被选中 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* 防止文字被拖动 */
+    pointer-events: none;
   }
   .nav-btn.active .text {
     color: #2b2bff;
