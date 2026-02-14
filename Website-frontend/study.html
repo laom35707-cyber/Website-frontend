@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>学习打卡 · 寒假最优解 · 冲刺复习</title>
+    <style>
+        /* 样式与之前完全相同，仅移除每日必做相关样式，保留冲刺卡片 */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background: linear-gradient(to top, #f2f2f2 0%, #ffffff 45%, #ffffff 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        .top-bar {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 99;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .stud-badge {
+            background: #0f172a;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .ticket-badge {
+            background: #ffb74d;
+            color: #2c1810;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .reward-entry {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(145deg, #2b2bff, #4343ff);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(43,43,255,0.25);
+            transition: 0.2s;
+            position: relative;
+        }
+        .red-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+        }
+        .study-body-content {
+            padding: 10px 16px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.04);
+        }
+        h2 { font-size: 1.5em; margin: 0 0 4px; color: #0f172a; font-weight: 700; }
+        .subtitle {
+            font-size: 0.85em;
+            color: #64748b;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .random-box {
+            background: #fff9f0;
+            border: 1px solid #ffedd5;
+            padding: 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        #suggestion {
+            font-weight: 600;
+            color: #9a3412;
+            font-size: 0.95rem;
+        }
+        .btn-pick {
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(249,115,22,0.2);
+        }
+        /* 冲刺复习卡片样式 */
+        .sprint-card {
+            background: #e8f0fe;
+            border-radius: 24px;
+            padding: 18px 16px;
+            margin-bottom: 24px;
+            border: 1px solid #ccdfff;
+        }
+        .sprint-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .sprint-grid {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .sprint-item {
+            background: white;
+            border-radius: 20px;
+            padding: 12px 8px;
+            min-width: 100px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            flex: 1;
+        }
+        .sprint-item .subject-icon { font-size: 28px; margin-bottom: 4px; }
+        .sprint-item .subject-name { font-weight: 600; color: #2c3e50; }
+        .sprint-item .count {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2563eb;
+            line-height: 1.2;
+            margin: 4px 0;
+        }
+        .btn-review {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(59,130,246,0.3);
+            transition: 0.1s;
+            margin-top: 6px;
+        }
+        .btn-review:active { transform: scale(0.96); }
+        .section-header {
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #334155;
+            margin: 20px 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px;
+        }
+        .task-group {
+            border: 1px solid #f1f5f9;
+            border-radius: 18px;
+            overflow: hidden;
+            background: white;
+        }
+        .task-row { border-bottom: 1px solid #f8fafc; }
+        .task-row:last-child { border-bottom: none; }
+        .task-main {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .check-box {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            margin-right: 14px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .task-row.done .check-box {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        .task-row.done .check-box::after { content: '✓'; }
+        .task-text {
+            flex-grow: 1;
+            color: #0f172a;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .task-row.done .task-text {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+        .time-tag, .cat-tag {
+            font-size: 0.75em;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 20px;
+            color: #475569;
+            margin-left: 8px;
+        }
+        .cat-tag {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .task-detail {
+            display: none;
+            padding: 12px 16px 16px 52px;
+            background: #f8fafc;
+            font-size: 0.85em;
+            color: #334155;
+            border-top: 1px solid #f1f5f9;
+        }
+        .task-detail.active { display: block; }
+        /* 不再需要 review-row 但保留无妨 */
+        .footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #94a3b8;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .btn-reset {
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin: 10px 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        /* 只有重置选做池按钮 */
+        .nav-container { 
+            position: fixed; 
+            bottom: 12px; 
+            left: 2%; 
+            width: 96%; 
+            height: 80px; 
+            background: #fff; 
+            border-radius: 18px; 
+            border: 1px solid #e8e8e8; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .button-group { 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            max-width:600px;
+        }
+        .nav-btn { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            padding: 8px 12px;
+            border-radius: 12px;
+            min-width: 60px;
+        }
+        .nav-btn .emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+            user-select: none;
+            pointer-events: none;
+        }
+        .nav-btn .text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            user-select: none;
+            pointer-events: none;
+        }
+        .nav-btn.active .text { color: #2b2bff; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo-area">
+            <span style="font-size:22px;">📘</span>
+            <span>STUDY · 学周 <span id="weekBadge">1</span></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="ticket-badge" id="ticketHeader">🎟️ 0</span>
+            <span class="stud-badge" id="studHeader">0 STUD</span>
+            <button class="reward-entry" onclick="location.href='reward.html'">
+                <span class="emoji">🎴</span>
+                <span>奖励中心</span>
+                <span id="rewardRedDot" class="red-dot"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="study-body-content">
+        <div class="container">
+            <h2>🎯 寒假最优解 · 最后冲刺</h2>
+            <div class="subtitle">
+                <span>薄弱科目狂飙 · 每节+300 STUD</span>
+                <span style="color:#2b2bff;">💰 流动资金: <span id="flowAmount">0</span>元</span>
+            </div>
+
+            <div class="random-box">
+                <span id="suggestion">🤔 不知道先做哪项？</span>
+                <button class="btn-pick" onclick="pickRandom()">🎲 随机选做</button>
+            </div>
+
+            <!-- 冲刺复习卡片：物理/化学/数学 每节+300 STUD -->
+            <div class="sprint-card">
+                <div class="sprint-header">
+                    <span>⚡</span> 薄弱科目冲刺 · 每节 +300 STUD
+                </div>
+                <div class="sprint-grid">
+                    <div class="sprint-item">
+                        <div class="subject-icon">🔬</div>
+                        <div class="subject-name">物理复习</div>
+                        <div class="count" id="review-physics">0</div>
+                        <button class="btn-review" data-subject="physics">➕ 复习一节</button>
+                    </div>
+                    <div class="sprint-item">
+                        <div class="subject-icon">🧪</div>
+                        <div class="subject-name">化学复习</div>
+                        <div class="count" id="review-chemistry">0</div>
+                        <button class="btn-review" data-subject="chemistry">➕ 复习一节</button>
+                    </div>
+                    <div class="sprint-item">
+                        <div class="subject-icon">📐</div>
+                        <div class="subject-name">数学订正</div>
+                        <div class="count" id="review-math">0</div>
+                        <button class="btn-review" data-subject="math">➕ 订正一次</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 周期选做池 (13项) -->
+            <div class="section-header">
+                <span>🏆 周期选做池 (13项)</span>
+                <span id="pool-progress" style="font-size:0.8rem;background:#f1f5f9;padding:4px 10px;border-radius:20px;">0/13</span>
+            </div>
+            <div class="task-group" id="pool-list"></div>
+
+            <!-- 仅保留重置选做池按钮，移除开始新学周按钮 -->
+            <div style="display:flex; justify-content:center; gap:12px; margin-top:24px;">
+                <button class="btn-reset" onclick="resetPool()">🔄 重置选做池</button>
+            </div>
+            <div class="footer">
+                <span>✅ 选做完成+100 STUD · 冲刺复习每节+300</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-container">
+        <div class="button-group">
+            <div class="nav-btn" onclick="location.href='index.html'"><div class="emoji">🏠</div><div class="text">主页</div></div>
+            <div class="nav-btn active" onclick="location.href='study.html'"><div class="emoji">📚</div><div class="text">学习</div></div>
+            <div class="nav-btn" onclick="location.href='wiki.html'"><div class="emoji">📓</div><div class="text">维基</div></div>
+            <div class="nav-btn" onclick="location.href='w.html'"><div class="emoji">⚙️</div><div class="text">状态</div></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局配置
+        const API_BASE = '';  // 相对路径，适配worker
+        // 周期选做任务池 (13项)
+        const POOL_TASKS = [
+            { id: 1, cat: '数学', name: '数学复习+AI交流', time: '120m', detail: '<b>📐 攻略：</b>90m模考+30m批改。不论对错都要问AI最优解方案，对比思路。' },
+            { id: 2, cat: '数学', name: '数学预习新课+AI交流', time: '120m', detail: '<b>📏 攻略：</b>看录播并做题。与AI深入探讨，寻找解题最优切入点。' },
+            { id: 3, cat: '语文', name: '写作文+AI二次修改', time: '90m', detail: '<b>✍️ 攻略：</b>60m写+30m改。写前看教学，写后让AI分析不足，必须完成二次修改。' },
+            { id: 4, cat: '语文', name: '语文做题方法练习', time: '50m', detail: '<b>📚 攻略：</b>看视频或问AI题型套路，针对弱项专项爆破。' },
+            { id: 5, cat: '英语', name: '英语语法录播+练习', time: '120m', detail: '<b>🇬🇧 攻略：</b>看晓燕语法课，同步完成配套练习，不要只听不练。' },
+            { id: 6, cat: '英语', name: '英语课外练习(晓燕)', time: '40m', detail: '<b>📘 攻略：</b>针对性完成晓燕书里的进阶练习。' },
+            { id: 7, cat: '英语', name: '英语阅读理解练习书', time: '40m', detail: '<b>📖 攻略：</b>限时阅读，标注生词，锻炼语感。' },
+            { id: 8, cat: '英语', name: '英语做题方法录播+练习', time: '120m', detail: '<b>🎧 攻略：</b>学习录播中的解题技巧，并在同步练习中应用。' },
+            { id: 9, cat: '英语', name: '英语阅读理解录播+练习', time: '120m', detail: '<b>📰 攻略：</b>深度解剖文章结构，跟录播课同步做精读。' },
+            { id: 10, cat: '物理', name: '物理八上理解+AI抽问', time: '120m', detail: '<b>⚛️ 攻略：</b>看录播。对模糊点复述给AI听，并让AI进行模拟抽问。' },
+            { id: 11, cat: '物理', name: '物理八下理解+AI抽问', time: '120m', detail: '<b>🔭 攻略：</b>同上，重点在理解物理逻辑而非背公式。' },
+            { id: 12, cat: '化学', name: '化学八上理解+AI抽问', time: '120m', detail: '<b>🧪 攻略：</b>看录播。向AI转述实验性质，让AI纠错并进行随机抽问。' },
+            { id: 13, cat: '化学', name: '化学八下理解+AI抽问', time: '120m', detail: '<b>⚗️ 攻略：</b>同上，利用AI模拟真实考查场景。' }
+        ];
+
+        // 默认状态（当API离线时使用，防止白屏）
+        const DEFAULT_STATE = {
+            stud: 0,
+            flow: 0,
+            week: 1,
+            poolCompleted: [],
+            inventory: [],
+            review: { physics: 0, chemistry: 0, math: 0 }
+        };
+
+        let state = { ...DEFAULT_STATE };
+
+        // 辅助函数：调用后端API，失败时返回null（不抛异常给UI）
+        async function api(path, opts = {}) {
+            const url = API_BASE + '/api/' + path;
+            try {
+                const res = await fetch(url, {
+                    method: opts.method || 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: opts.body ? JSON.stringify(opts.body) : undefined
+                });
+                if (!res.ok) {
+                    console.warn('API error', res.status);
+                    return null;
+                }
+                return res.json();
+            } catch (e) {
+                console.warn('Network error', e);
+                return null;
+            }
+        }
+
+        // 初始化：拉取状态，若失败则使用默认状态渲染
+        async function init() {
+            try {
+                const status = await api('status');
+                if (status) {
+                    state = {
+                        stud: status.stud || 0,
+                        flow: status.flow || 0,
+                        week: status.week || 1,
+                        poolCompleted: status.poolCompleted || [],
+                        inventory: status.inventory || [],
+                        review: status.review || { physics: 0, chemistry: 0, math: 0 }
+                    };
+                } else {
+                    state = { ...DEFAULT_STATE };
+                }
+            } catch (e) {
+                console.error('初始化失败，使用默认视图', e);
+                state = { ...DEFAULT_STATE };
+            }
+            updateUI();
+            checkRedDot();
+        }
+
+        function updateUI() {
+            document.getElementById('weekBadge').innerText = state.week;
+            document.getElementById('studHeader').innerHTML = `${state.stud} STUD`;
+            document.getElementById('flowAmount').innerHTML = state.flow;
+
+            // 抽卡券显示
+            let ticketCount = 0;
+            (state.inventory || []).forEach(item => {
+                if (item.type === 'gacha_ticket') ticketCount += (item.amount || 1);
+            });
+            document.getElementById('ticketHeader').innerHTML = `🎟️ ${ticketCount}`;
+
+            // 更新冲刺复习计数
+            const review = state.review || { physics: 0, chemistry: 0, math: 0 };
+            document.getElementById('review-physics').innerText = review.physics || 0;
+            document.getElementById('review-chemistry').innerText = review.chemistry || 0;
+            document.getElementById('review-math').innerText = review.math || 0;
+
+            renderPoolTasks(state.poolCompleted);
+        }
+
+        function renderPoolTasks(doneIds) {
+            const html = POOL_TASKS.map(t => `
+                <div class="task-row ${doneIds.includes(t.id) ? 'done' : ''}">
+                    <div class="task-main" onclick="toggleDetail('pool-${t.id}')">
+                        <div class="check-box" onclick="event.stopPropagation(); toggleTask(${t.id})"></div>
+                        <div class="task-text">
+                            <span class="cat-tag">${t.cat}</span> ${t.name}
+                            <span class="time-tag">⏱️ ${t.time}</span>
+                        </div>
+                    </div>
+                    <div id="detail-pool-${t.id}" class="task-detail">${t.detail}</div>
+                </div>
+            `).join('');
+            document.getElementById('pool-list').innerHTML = html;
+            document.getElementById('pool-progress').innerText = `${doneIds.length}/${POOL_TASKS.length}`;
+        }
+
+        // 选做任务打卡
+        async function toggleTask(id) {
+            if (state.poolCompleted.includes(id)) { alert('该任务已完成，不能重复领取'); return; }
+
+            try {
+                const reward = 100;
+                const result = await api('check', {
+                    method: 'POST',
+                    body: { taskId: id, type: 'pool', reward }
+                });
+                if (result) {
+                    await init();
+                } else {
+                    alert('打卡失败，请稍后重试');
+                }
+            } catch (e) {
+                alert('打卡失败: ' + e.message);
+            }
+        }
+
+        // 复习课次打卡 (物理/化学/数学)
+        async function reviewLesson(subject) {
+            const subjectMap = {
+                'physics': '物理',
+                'chemistry': '化学',
+                'math': '数学'
+            };
+            const name = subjectMap[subject] || subject;
+            if (!confirm(`确认完成一节${name}复习？ +300 STUD`)) return;
+
+            const result = await api('reviewLesson', {
+                method: 'POST',
+                body: { subject }
+            });
+            if (result) {
+                await init();
+            } else {
+                alert('网络错误，加分失败');
+            }
+        }
+
+        function pickRandom() {
+            const left = POOL_TASKS.filter(t => !state.poolCompleted.includes(t.id));
+            if (left.length === 0) {
+                document.getElementById('suggestion').innerHTML = '🎉 全部完成！太强了！';
+                return;
+            }
+            const lucky = left[Math.floor(Math.random() * left.length)];
+            document.getElementById('suggestion').innerHTML = `✨ [${lucky.cat}] ${lucky.name}`;
+        }
+
+        async function resetPool() {
+            if (!confirm('确定重置周期选做池吗？已完成任务将重新变为未完成。')) return;
+            const result = await api('resetWeek', { method: 'POST' });
+            if (result) await init(); else alert('操作失败');
+        }
+
+        async function checkRedDot() {
+            const status = await api('status');
+            if (status) {
+                const dot = document.getElementById('rewardRedDot');
+                dot.style.display = (status.inventory && status.inventory.length > 0) ? 'block' : 'none';
+            }
+        }
+
+        function toggleDetail(uid) {
+            const target = document.getElementById('detail-' + uid);
+            if (!target) return;
+            const isOpen = target.classList.contains('active');
+            document.querySelectorAll('.task-detail').forEach(d => d.classList.remove('active'));
+            if (!isOpen) target.classList.add('active');
+        }
+
+        // 绑定冲刺复习按钮事件
+        function bindReviewButtons() {
+            document.querySelectorAll('.btn-review').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const subject = e.target.dataset.subject;
+                    reviewLesson(subject);
+                });
+            });
+        }
+
+        window.onload = async function() {
+            await init();
+            bindReviewButtons();
+        };
+
+        // 在updateUI后重新绑定按钮
+        const originalUpdateUI = updateUI;
+        updateUI = function() {
+            originalUpdateUI();
+            bindReviewButtons();
+        };
+
+        // 暴露全局函数
+        window.toggleDetail = toggleDetail;
+        window.toggleTask = toggleTask;
+        window.pickRandom = pickRandom;
+        window.resetPool = resetPool;
+        window.reviewLesson = reviewLesson;
+    </script>
+</body>
+</html>

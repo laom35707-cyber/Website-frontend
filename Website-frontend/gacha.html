@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎴 抽卡大厅 · 钢琴极简版</title>
+    <!-- 极简黑白灰 · 致敬 Chilly Gonzales 《Solo Piano III》 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ──────────────────────────────────────────────
+           纯黑 / 纯白 / 极简灰阶 · 细线 · 静谧留白  
+          所有彩色彻底移除 —— 仅剩钢琴琴键般的克制 
+        ────────────────────────────────────────────── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #ffffff;                /* 纯白背景，无杂质 */
+            font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+            color: #000000;
+            line-height: 1.6;
+            padding: 3.5rem 2rem;
+            min-height: 100vh;
+            position: relative;
+            filter: grayscale(1);              /* 所有色彩褪去——黑白琴键 */
+            font-weight: 400;
+            letter-spacing: 0.02em;
+        }
+
+        /* 彻底移除所有彩色渐变、伪元素、阴影 — 只剩黑白构成 */
+        body::before {
+            display: none;
+        }
+
+        .magazine-container {
+            max-width: 860px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== 标题区 · 衬线力量 ===== */
+        .title-block {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 4.8rem;
+            border-bottom: 1px solid #000000;   /* 细线，利落 */
+            padding-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .title-main {
+            font-family: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+            font-size: 3.2rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: #000000;
+            line-height: 1;
+            text-transform: uppercase;           /* 力度感，大写 */
+        }
+
+        .title-main span {
+            background: #000000;                /* 纯黑块 */
+            color: #ffffff;                   /* 纯白字 */
+            padding: 0.3rem 1rem 0.2rem 1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-left: 0.8rem;
+            border-radius: 0;                /* 直角，绝对简约 */
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.1em;
+            display: inline-block;
+            border: 1px solid #000000;
+        }
+
+        .back-link {
+            background: transparent;
+            border: 1px solid #000000;
+            border-radius: 0;
+            padding: 0.6rem 1.8rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #000000;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s ease, opacity 0.15s;
+            line-height: 1;
+        }
+
+        .back-link:hover {
+            background: rgba(0, 0, 0, 0.04);   /* 极微弱灰 */
+            border-color: #000000;
+        }
+
+        .back-link:active {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== 三枚统计标签 · 线条与留白 ===== */
+        .stats-bar {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 64px;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 0;
+            padding: 0.6rem 1.8rem 0.6rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #000000;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+
+        .stat-chip .emoji {
+            font-size: 1.6rem;
+            filter: grayscale(1);
+            opacity: 0.9;
+        }
+
+        .stat-chip .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #000000;
+            margin-left: 6px;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        /* ===== 单池 · 纯粹构成 ===== */
+        .pool-single {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 0;
+            padding: 40px 36px;
+            margin-bottom: 64px;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+
+        .pool-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .pool-icon {
+            font-size: 3rem;
+            filter: grayscale(1);
+            line-height: 1;
+        }
+
+        .pool-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #000000;
+            letter-spacing: -0.01em;
+            border-bottom: 1px solid #000;
+            line-height: 1.2;
+        }
+
+        /* 抽卡券 —— 巨大数字，安静的力量 */
+        .ticket-count {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 0;
+            padding: 18px 28px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            color: #000000;
+        }
+
+        .ticket-number {
+            font-size: 3.4rem;
+            font-weight: 800;
+            color: #000000;
+            line-height: 1;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 按钮 · 细边框 · 纯粹灰度交互 */
+        .button-group {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 0;
+            border: 1px solid #000000;
+            border-radius: 0;
+            background: #ffffff;
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.15s, opacity 0.15s;
+            box-shadow: none;
+            color: #000000;
+            letter-spacing: 0.06em;
+        }
+
+        .btn:hover {
+            background: rgba(0, 0, 0, 0.04);  /* 仅透明度变化，克制 */
+            border-color: #000000;
+        }
+
+        .btn:active {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            background: #ffffff;
+            border-color: #7a7a7a;
+            color: #7a7a7a;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            pointer-events: none;
+        }
+
+        .btn-primary, .btn-secondary {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        /* ===== 展廊 · 暗盒 ===== */
+        .result-gallery {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 0;
+            padding: 36px 32px;
+            margin-top: 20px;
+            box-shadow: none;
+        }
+
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 32px;
+            border-bottom: 1px solid #d0d0d0;
+            padding-bottom: 14px;
+        }
+
+        .gallery-header h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #000000;
+            letter-spacing: -0.01em;
+        }
+
+        .badge {
+            background: #000000;
+            color: #ffffff;
+            padding: 4px 16px;
+            border-radius: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            letter-spacing: 0.1em;
+        }
+
+        /* 卡片网格 · 灰度层次 */
+        .card-wall {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 6px 4px 12px 4px;
+        }
+
+        .reward-item {
+            background: #ffffff;
+            border-left: 6px solid #000000;   /* 默认黑条 */
+            border-top: 1px solid #e6e6e6;
+            border-right: 1px solid #e6e6e6;
+            border-bottom: 1px solid #e6e6e6;
+            border-radius: 0;
+            padding: 18px 16px;
+            box-shadow: none;
+            transition: background 0.1s;
+        }
+
+        /* 稀有度仅用灰阶明度区分 —— N浅灰 / R中灰 / SSR黑 */
+        .reward-item.N {
+            border-left-color: #b3b3b3;
+        }
+        .reward-item.R {
+            border-left-color: #666666;
+        }
+        .reward-item.SSR {
+            border-left-color: #1a1a1a;
+        }
+
+        .reward-rarity {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            background: #f0f0f0;
+            color: #000000;
+            border-radius: 0;
+            display: inline-block;
+            margin-bottom: 14px;
+            letter-spacing: 0.1em;
+            border: none;
+        }
+
+        .reward-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #1a1a1a;
+            word-break: break-word;
+        }
+
+        /* 兑换券、双卡等标识 — 无色彩，纯粹灰度 */
+        .reward-item [style*="font-size:0.6rem"] {
+            font-size: 0.6rem !important;
+            margin-top: 12px;
+            color: #555555 !important;
+            border-top: 1px dashed #aaa;
+            padding-top: 8px;
+            font-weight: 500;
+        }
+
+        .empty-wall {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 70px 0;
+            color: #6b6b6b;
+            font-weight: 400;
+            font-style: italic;
+            font-size: 1rem;
+            border: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        /* 脚注 · 低调 */
+        .colophon {
+            margin-top: 64px;
+            text-align: right;
+            font-size: 0.75rem;
+            color: #6a6a6a;
+            border-top: 1px solid #cccccc;
+            padding-top: 20px;
+            font-style: italic;
+            letter-spacing: 0.1em;
+            font-weight: 300;
+        }
+
+        /* 所有 emoji 彻底灰度 (全局 grayscale 已处理，但二次确保) */
+        .pool-icon, .stat-chip .emoji, .btn span, .back-link span, .reward-name {
+            filter: grayscale(1);
+        }
+
+        /* 保留纯黑纯白，移除所有彩色遗留 */
+        a, a:visited {
+            color: #000000;
+        }
+
+        /* 响应式 · 留白依然 */
+        @media (max-width: 600px) {
+            body {
+                padding: 2rem 1.2rem;
+            }
+            .title-main {
+                font-size: 2.4rem;
+            }
+            .pool-single {
+                padding: 28px 22px;
+            }
+            .ticket-number {
+                font-size: 2.6rem;
+            }
+            .stats-bar {
+                gap: 16px;
+            }
+            .stat-chip {
+                padding: 0.5rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="magazine-container">
+        <div class="title-block">
+            <div class="title-main">🎴 抽卡大厅 <span>Vol.2</span></div>
+            <a href="reward.html" class="back-link"><span style="font-size:1.2rem;">←</span> 返回奖励中心</a>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-chip"><span class="emoji">🎴</span><span>STUD</span><span class="value" id="studDisplay">0</span></div>
+            <div class="stat-chip"><span class="emoji">💰</span><span>储备金</span><span class="value" id="reserveDisplay">150</span></div>
+            <div class="stat-chip"><span class="emoji">💧</span><span>流动资金</span><span class="value" id="flowDisplay">0</span></div>
+        </div>
+
+        <!-- 单一卡池 · 静谧抽券 -->
+        <div class="pool-single">
+            <div class="pool-header">
+                <span class="pool-icon">🎟️</span>
+                <span class="pool-title">统一卡池</span>
+            </div>
+            <div class="ticket-count">
+                <span>抽卡券</span>
+                <span class="ticket-number" id="ticketCount">0</span>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" id="draw1Btn">🎲 抽1次</button>
+                <button class="btn btn-secondary" id="draw10Btn">📦 十连抽</button>
+            </div>
+            <div style="margin-top:28px; font-size:0.8rem; color:#5a5a5a; text-align:center; border-top:1px solid #d4d4d4; padding-top:18px; letter-spacing:0.05em;">
+                ⚡ 5%双卡 · N卡含零食 · 小STUD 10~80反比 · 保底继承
+            </div>
+        </div>
+
+        <div class="result-gallery">
+            <div class="gallery-header">
+                <h3>🖼️ 抽卡展廊 · 最新入藏</h3>
+                <span class="badge" id="resultCount">0 件</span>
+            </div>
+            <div id="resultWall" class="card-wall">
+                <div class="empty-wall">✨ 还没有抽卡记录，触碰艺术吧 ✨</div>
+            </div>
+        </div>
+        <div class="colophon">STUD激励系统 · 统一卡池 · 零食上线</div>
+    </div>
+
+    <script>
+        // ---------- 完全保留原抽卡逻辑，UI 已彻底变奏为黑白琴键 ----------
+        const API_BASE = '';
+        const RESULT_MAX = 30;
+        let currentResults = [];
+
+        async function api(path, opts = {}) {
+            const url = API_BASE + '/api/' + path;
+            const res = await fetch(url, {
+                method: opts.method || 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                body: opts.body ? JSON.stringify(opts.body) : undefined
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        async function refreshUI() {
+            try {
+                const status = await api('status');
+                document.getElementById('studDisplay').innerText = status.stud ?? 0;
+                document.getElementById('reserveDisplay').innerText = status.reserve ?? 150;
+                document.getElementById('flowDisplay').innerText = status.flow ?? 0;
+
+                const inv = status.inventory || [];
+                let ticket = 0;
+                inv.forEach(item => {
+                    if (item.type === 'gacha_ticket') ticket += (item.amount || 1);
+                });
+                document.getElementById('ticketCount').innerText = ticket;
+                document.getElementById('draw1Btn').disabled = (ticket === 0);
+                document.getElementById('draw10Btn').disabled = (ticket < 10);
+                return status;
+            } catch (e) {
+                console.error('刷新失败', e);
+            }
+        }
+
+        async function drawOnce() {
+            try {
+                const res = await api('gacha', { method: 'POST', body: {} });
+                if (res.results) renderResults(res.results);
+                await refreshUI();
+            } catch (e) {
+                alert(`抽卡失败: ${e.message}`);
+            }
+        }
+
+        async function drawTen() {
+            const btn = document.getElementById('draw10Btn');
+            btn.disabled = true;
+            try {
+                for (let i = 0; i < 10; i++) {
+                    await drawOnce();
+                    await new Promise(r => setTimeout(r, 150));
+                }
+            } finally {
+                btn.disabled = false;
+                refreshUI();
+            }
+        }
+
+        function renderResults(newResults) {
+            const wall = document.getElementById('resultWall');
+            if (!wall) return;
+            newResults.forEach(r => {
+                let title = '';
+                let rarityClass = r.rarity || 'N';
+                if (r.rarity === 'N') title += '[N] ';
+                else if (r.rarity === 'R') title += '[R] ';
+                else if (r.rarity === 'SSR') title += '[SSR] ';
+
+                if (r.type === 'drink') title += `🥤 ${r.subtype}`;
+                else if (r.type === 'coffee') title += `☕ ${r.subtype}`;
+                else if (r.type === 'food_double') title += `🍔 ${r.brand}双餐 (${r.meal}+${r.extraMeal})`;
+                else if (r.type === 'food') title += `🍟 ${r.brand}·${r.meal}`;
+                else if (r.type === 'snack') title += `🍫 ${r.subtype}`;
+                else if (r.type === 'fly') title += '🛫 起飞通行证';
+                else if (r.type === 'fly_convert') title += `✈️ 起飞转化 (${r.amount} STUD)`;
+                else if (r.type === 'stud_small') title += `📘 STUD +${r.amount}`;
+                else if (r.type === 'super_stud') title += `✨ 超级STUD包 (${r.amount} STUD)`;
+                else if (r.type === 'unlock_small') title += `🔓 小解锁券 (${r.amount}元)`;
+                else if (r.type === 'unlock_big') title += `🔓 大解锁券 (${r.amount}元)`;
+                else if (r.type === 'parent_pay') title += `💳 父母买单券 (${r.amount}元)`;
+                else if (r.type === 'unlock_all') title += `🎉 资金全解锁`;
+                else title += r.type;
+
+                const cardHtml = `
+                    <div class="reward-item ${rarityClass}">
+                        <span class="reward-rarity">${r.rarity || 'N'}</span>
+                        <div class="reward-name">${title}</div>
+                        ${r.fromExchange ? '<div style="font-size:0.6rem;margin-top:8px;color:#555;">🔄 兑换券</div>' : ''}
+                        ${r.fromDouble ? '<div style="font-size:0.6rem;margin-top:8px;color:#444;">⚡ 双卡</div>' : ''}
+                    </div>
+                `;
+                currentResults.unshift(cardHtml);
+            });
+            if (currentResults.length > RESULT_MAX) currentResults = currentResults.slice(0, RESULT_MAX);
+            if (currentResults.length === 0) {
+                wall.innerHTML = '<div class="empty-wall">✨ 还没有抽卡记录，触碰艺术吧 ✨</div>';
+            } else {
+                wall.innerHTML = currentResults.join('');
+            }
+            document.getElementById('resultCount').innerText = `${currentResults.length} 件`;
+        }
+
+        window.onload = async () => {
+            await refreshUI();
+            currentResults = [];
+            document.getElementById('resultWall').innerHTML = '<div class="empty-wall">✨ 还没有抽卡记录，触碰艺术吧 ✨</div>';
+            document.getElementById('resultCount').innerText = '0 件';
+            document.getElementById('draw1Btn').addEventListener('click', drawOnce);
+            document.getElementById('draw10Btn').addEventListener('click', drawTen);
+        };
+    </script>
+</body>
+</html>

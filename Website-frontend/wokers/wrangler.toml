@@ -1,0 +1,27 @@
+name = "diary-backend"
+main = "worker.js"
+compatibility_date = "2026-02-10"
+
+account_id = "98cee16c52b73e9d1ca7ce88ecc9ced9"
+workers_dev = false
+
+route = "laomasama.dpdns.org/*"
+zone_id = "cae92c42ef60132d10e1e6c254ed3c1f"
+
+[vars]
+SITE_NAME = "lm"
+MAX_CONTENT_SIZE = 1048576
+
+[[kv_namespaces]]
+binding = "POSTS_KV"
+id = "a836d0b69b2140a2bfb5c3b9a65242ab"
+
+[[kv_namespaces]]
+binding = "TRASH_KV"
+id = "ee10764083064b9ab4240eefee131024"
+
+[env.production]
+VERSION = "1.0.0"
+
+[triggers]
+crons = ["0 * * * *"]
