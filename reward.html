@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎴 奖励中心 · STUD激励系统</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(145deg, #f6f9fc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            padding: 20px 16px 30px;
+            color: #0f172a;
+        }
+        .reward-container { max-width: 680px; margin: 0 auto; }
+        .reward-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .back-btn:hover { background: #f8fafc; }
+        .week-badge {
+            background: #0f172a;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .card {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 22px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px 24px;
+            margin-bottom: 16px;
+        }
+        .stat-item {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .stat-label { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1; }
+        .stat-unit { font-size: 0.8rem; color: #64748b; margin-left: 2px; }
+
+        .progress-group {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 14px 16px;
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pity-text { font-size: 0.8rem; color: #334155; font-weight: 500; }
+
+        .fund-progress {
+            margin-top: 16px;
+            padding: 10px 0;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2b2bff);
+            border-radius: 20px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .wish-section {
+            background: #fef9c3;
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .wish-select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #0f172a;
+        }
+
+        .action-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .btn {
+            border: none;
+            padding: 14px 24px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1 1 auto;
+        }
+        .btn-primary {
+            background: linear-gradient(145deg, #2b2bff, #4343ff);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 20px rgba(43,43,255,0.25);
+        }
+        .btn-success { background: #10b981; color: white; border: none; }
+        .btn-warning { background: #f97316; color: white; border: none; }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+
+        .result-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 12px;
+            border-left: 6px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .result-card.N { border-left-color: #94a3b8; }
+        .result-card.R { border-left-color: #3b82f6; }
+        .result-card.SSR { border-left-color: #f59e0b; }
+        .rarity-tag {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 30px;
+            background: #f1f5f9;
+            display: inline-block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .inventory-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+        .inventory-item {
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            width: calc(50% - 6px);
+            min-width: 160px;
+            flex: 1 0 180px;
+            border: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+        }
+        .item-name { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+        .item-desc { font-size: 0.75rem; color: #64748b; margin-bottom: 16px; }
+        .use-btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-top: auto;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .use-btn:active { background: #0284c7; }
+        .log-panel {
+            background: #0f172a;
+            border-radius: 20px;
+            padding: 18px;
+            color: #e2e8f0;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .empty-state { color: #94a3b8; text-align: center; padding: 30px 0; font-size: 0.9rem; }
+        .exchange-badge {
+            background: #fef9c3;
+            color: #854d0e;
+            font-size: 0.6rem;
+            padding: 3px 8px;
+            border-radius: 30px;
+            margin-left: 6px;
+        }
+        .cd-timer {
+            background: #1e293b;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        @media (max-width: 480px) {
+            .inventory-item { width: 100%; }
+            .stats-row { gap: 12px; }
+            .stat-value { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="reward-container">
+        <div class="reward-header">
+            <button class="back-btn" onclick="location.href='study.html'"><span class="emoji">←</span><span>返回学习</span></button>
+            <div class="week-badge" id="weekDisplay">学周 1</div>
+        </div>
+
+        <div class="card">
+            <div class="stats-row">
+                <div class="stat-item"><span class="stat-label">🎴 STUD</span><span class="stat-value" id="studDisplay">0</span></div>
+                <div class="stat-item"><span class="stat-label">💰 储备金</span><span class="stat-value" id="reserveDisplay">150</span><span class="stat-unit">元</span></div>
+                <div class="stat-item"><span class="stat-label">💧 流动资金</span><span class="stat-value" id="flowDisplay">0</span><span class="stat-unit">元</span></div>
+            </div>
+
+            <div class="fund-progress">
+                <div class="progress-label"><span>💰 解锁进度</span><span id="progressText">0/150 元</span></div>
+                <div class="progress-bar-bg"><div id="progressFill" class="progress-bar-fill" style="width:0%;"></div></div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+                <span id="flyCDDisplay" class="cd-timer">🛫 起飞: 可用</span>
+            </div>
+
+            <div class="progress-group">
+                <span class="pity-text">🔰 R保底: <span id="rPityCount">0</span>/4</span>
+                <span class="pity-text">✨ SSR软保底: <span id="ssrPityCount">0</span>/20</span>
+                <span class="pity-text" id="bigPityHint">⭐ 大保底: 未激活</span>
+            </div>
+
+            <div class="wish-section">
+                <span style="font-weight:600;">🌟 心愿单SSR</span>
+                <select id="wishSelect" class="wish-select">
+                    <option value="">未设置</option>
+                    <option value="parent_pay">父母买单券</option>
+                    <option value="unlock_all">资金全解锁</option>
+                    <option value="super_stud">超级STUD包</option>
+                </select>
+                <button class="btn" style="background:#2b2bff; color:white; padding:8px 16px;" onclick="setWish()">确认</button>
+            </div>
+
+            <!-- 商店：购买抽卡券（消耗 STUD） -->
+            <div class="action-group">
+                <button id="buyBoxBtn" class="btn btn-primary"><span>🎟️</span> 购买抽卡券 (150 STUD)</button>
+                <button id="buyBoxMultiBtn" class="btn btn-warning"><span>📦</span> 十连券 (1500 STUD)</button>
+                <button id="claimBtn" class="btn btn-success"><span>🏆</span> 领周全勤</button>
+            </div>
+            <div style="font-size:0.75rem;color:#64748b;margin-top:12px;text-align:right">
+                🎟️ 统一抽卡券 · N卡含零食 · 小STUD反比 · 5%双卡
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="result-title"><span>🃏 最近记录</span><span id="resultCount">0 项</span></div>
+            <div id="resultContainer" class="result-grid"><div class="empty-state">还没有记录，开始购买抽卡券吧！</div></div>
+        </div>
+
+        <div class="card">
+            <div class="result-title"><span>🎒 背包 · 道具</span><span id="inventoryCount">0</span></div>
+            <div id="inventoryContainer" class="inventory-grid"></div>
+        </div>
+
+        <div class="card" style="padding:0;background:transparent;">
+            <details>
+                <summary style="padding:12px;background:rgba(255,255,255,0.6);border-radius:60px;cursor:pointer;font-size:0.8rem;">📋 系统日志</summary>
+                <div class="log-panel" id="logPanel">[系统] 等待操作...</div>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        const RESULT_MAX = 30;
+        let currentResults = [];
+
+        function log(msg) {
+            const panel = document.getElementById('logPanel');
+            if (!panel) return;
+            const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+            panel.innerHTML = `[${ts}] ${msg}\n` + panel.innerHTML;
+            if (panel.children.length > 15) panel.lastChild?.remove();
+        }
+
+        async function api(path, opts = {}) {
+            const url = API_BASE + '/api/' + path;
+            const res = await fetch(url, {
+                method: opts.method || 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                body: opts.body ? JSON.stringify(opts.body) : undefined
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        async function refreshAllUI() {
+            try {
+                const status = await api('status');
+                document.getElementById('studDisplay').innerText = status.stud ?? 0;
+                document.getElementById('reserveDisplay').innerText = status.reserve ?? 150;
+                document.getElementById('flowDisplay').innerText = status.flow ?? 0;
+                document.getElementById('rPityCount').innerText = status.rPity ?? 0;
+                document.getElementById('ssrPityCount').innerText = status.ssrPity ?? 0;
+                document.getElementById('bigPityHint').innerHTML = status.ssrBigPity ? '⭐ 大保底: <span style="color:#ea580c;">下次SSR必中心愿单</span>' : '⭐ 大保底: 未激活';
+                document.getElementById('weekDisplay').innerText = `学周 ${status.week ?? 1}`;
+                
+                const reserve = status.reserve ?? 150;
+                const flow = status.flow ?? 0;
+                const total = 150;
+                const percent = ((flow / total) * 100).toFixed(1);
+                document.getElementById('progressFill').style.width = Math.min(percent, 100) + '%';
+                document.getElementById('progressText').innerText = `${flow}/${total} 元`;
+
+                if (status.flyCD && status.flyCD > Date.now()) {
+                    const remain = Math.ceil((status.flyCD - Date.now()) / (60*60*1000));
+                    document.getElementById('flyCDDisplay').innerHTML = `🛫 冷却中 (${remain}h)`;
+                } else {
+                    document.getElementById('flyCDDisplay').innerHTML = `🛫 起飞: 可用`;
+                }
+
+                if (status.wish) document.getElementById('wishSelect').value = status.wish;
+                else document.getElementById('wishSelect').value = '';
+
+                renderInventory(status.inventory || []);
+                log('状态同步成功');
+                return status;
+            } catch (e) {
+                log('❌ 状态同步失败: ' + e.message);
+            }
+        }
+
+        function renderInventory(inv) {
+            const container = document.getElementById('inventoryContainer');
+            if (!container) return;
+            if (!inv || inv.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="width:100%;">👜 背包空空，快去购买抽卡券</div>';
+                document.getElementById('inventoryCount').innerText = '0';
+                return;
+            }
+            document.getElementById('inventoryCount').innerText = inv.reduce((acc, i) => acc + (i.amount || 1), 0);
+            let html = '';
+            inv.forEach(item => {
+                let name = '', desc = `数量: ${item.amount || 1}`;
+                if (item.type === 'drink') name = `🥤 ${item.subtype}`;
+                else if (item.type === 'coffee') name = `☕ ${item.subtype}`;
+                else if (item.type === 'snack') name = `🍫 ${item.subtype}`;
+                else if (item.type === 'food') {
+                    if (item.isDouble) name = `🍔 ${item.brand} 双餐 (${item.meal}+${item.extraMeal})`;
+                    else name = `🍟 ${item.brand} · ${item.meal}`;
+                }
+                else if (item.type === 'fly') name = '🛫 起飞通行证';
+                else if (item.type === 'parent_pay') name = `💳 父母买单券 (200元)`;
+                else if (item.type === 'unlock_small') name = `🔓 小解锁券 (${item.amount}元)`;
+                else if (item.type === 'unlock_big') name = `🔓 大解锁券 (${item.amount}元)`;
+                else if (item.type === 'super_stud') name = `✨ 超级STUD包 (500 STUD)`;
+                else if (item.type === 'gacha_ticket') name = `🎟️ 抽卡券`;
+                else name = item.type;
+
+                const isDoubleStr = item.isDouble ? 'true' : 'false';
+                const extraMealStr = item.extraMeal || '';
+                if (item.type === 'gacha_ticket') {
+                    html += `
+                        <div class="inventory-item">
+                            <div class="item-name">${name}</div>
+                            <div class="item-desc">${desc}</div>
+                            <button class="use-btn" onclick="useTicket()">🎲 抽卡</button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="inventory-item">
+                            <div class="item-name">${name}</div>
+                            <div class="item-desc">${desc}</div>
+                            <button class="use-btn" onclick="useItem('${item.type}', '${item.subtype || ''}', '${item.brand || ''}', '${item.meal || ''}', ${isDoubleStr}, '${extraMealStr}')">使用</button>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        // 购买抽卡券
+        async function buyBox(count = 1) {
+            const btn = count === 1 ? document.getElementById('buyBoxBtn') : document.getElementById('buyBoxMultiBtn');
+            if (btn) btn.disabled = true;
+            try {
+                const res = await api('buyBox', { method: 'POST', body: { count } });
+                log(`✅ 购买成功，消耗 ${150*count} STUD，获得 ${count} 张抽卡券`);
+                // 显示获得券
+                const card = `<div class="result-card N" style="border-left-color:#94a3b8;"><span class="rarity-tag">🎟️</span><div style="font-weight:600;">抽卡券 ×${count}</div></div>`;
+                currentResults.unshift(card);
+                if (currentResults.length > RESULT_MAX) currentResults = currentResults.slice(0, RESULT_MAX);
+                document.getElementById('resultContainer').innerHTML = currentResults.join('');
+                document.getElementById('resultCount').innerText = `${currentResults.length} 项`;
+                await refreshAllUI();
+            } catch (e) {
+                log('❌ 购买失败: ' + e.message);
+                alert('购买失败: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // 使用抽卡券抽卡
+        window.useTicket = async function() {
+            try {
+                const res = await api('gacha', { method: 'POST', body: {} });
+                log(`✅ 抽卡成功，消耗1张抽卡券`);
+                if (res.results) renderResults(res.results);
+                await refreshAllUI();
+            } catch (e) {
+                log('❌ 抽卡失败: ' + e.message);
+                alert('抽卡失败: ' + e.message);
+            }
+        };
+
+        window.useItem = async function(type, subtype, brand, meal, isDouble, extraMeal) {
+            const double = isDouble === 'true' ? true : false;
+            let payload = { type };
+            if (subtype && subtype !== 'undefined') payload.subtype = subtype;
+            if (brand && brand !== 'undefined') payload.brand = brand;
+            if (meal && meal !== 'undefined') payload.meal = meal;
+            if (double) payload.isDouble = true;
+            if (extraMeal && extraMeal !== 'undefined') payload.extraMeal = extraMeal;
+            try {
+                await api('use', { method: 'POST', body: payload });
+                log(`✅ 使用成功`);
+                await refreshAllUI();
+            } catch (e) {
+                log(`❌ 使用失败: ${e.message}`);
+                alert('使用失败: ' + e.message);
+            }
+        };
+
+        function renderResults(newResults) {
+            const container = document.getElementById('resultContainer');
+            if (!container) return;
+            newResults.forEach(r => {
+                let title = '';
+                if (r.rarity === 'N') title += '[N] ';
+                else if (r.rarity === 'R') title += '[R] ';
+                else if (r.rarity === 'SSR') title += '[SSR] ';
+
+                if (r.type === 'drink') title += `🥤 ${r.subtype}`;
+                else if (r.type === 'coffee') title += `☕ ${r.subtype}`;
+                else if (r.type === 'food_double') title += `🍔 ${r.brand}双餐 (${r.meal}+${r.extraMeal})`;
+                else if (r.type === 'food') title += `🍟 ${r.brand}·${r.meal}`;
+                else if (r.type === 'snack') title += `🍫 ${r.subtype}`;
+                else if (r.type === 'fly') title += '🛫 起飞通行证';
+                else if (r.type === 'fly_convert') title += `✈️ 起飞转化 (${r.amount} STUD)`;
+                else if (r.type === 'stud_small') title += `📘 STUD +${r.amount}`;
+                else if (r.type === 'super_stud') title += `✨ 超级STUD包 (${r.amount} STUD)`;
+                else if (r.type === 'unlock_small') title += `🔓 小解锁券 (${r.amount}元)`;
+                else if (r.type === 'unlock_big') title += `🔓 大解锁券 (${r.amount}元)`;
+                else if (r.type === 'parent_pay') title += `💳 父母买单券 (${r.amount}元)`;
+                else if (r.type === 'unlock_all') title += `🎉 资金全解锁`;
+                else title += r.type;
+
+                const card = `<div class="result-card ${r.rarity}"><span class="rarity-tag">${r.rarity}</span><div style="font-weight:600;">${title}</div>${r.fromExchange ? '<span class="exchange-badge">兑换券产出</span>' : ''}${r.fromDouble ? '<span class="exchange-badge">⚡双卡</span>' : ''}</div>`;
+                currentResults.unshift(card);
+            });
+            if (currentResults.length > RESULT_MAX) currentResults = currentResults.slice(0, RESULT_MAX);
+            container.innerHTML = currentResults.join('');
+            document.getElementById('resultCount').innerText = `${currentResults.length} 项`;
+        }
+
+        async function claimWeekly() {
+            try {
+                document.getElementById('claimBtn').disabled = true;
+                const res = await api('claim', { method: 'POST' });
+                log(`✅ 领取成功: +200 STUD, +1 R券`);
+                if (res.bonus) renderResults(res.bonus);
+                await refreshAllUI();
+                alert('领取成功！获得200 STUD + 1张随机R卡');
+            } catch (e) {
+                log('❌ 领取失败: ' + e.message);
+                alert('领取失败: ' + e.message);
+            } finally {
+                document.getElementById('claimBtn').disabled = false;
+            }
+        }
+
+        async function setWish() {
+            const select = document.getElementById('wishSelect');
+            const wish = select.value;
+            try {
+                await api('setWish', { method: 'POST', body: { wish: wish || null } });
+                log(`✅ 心愿单设置为: ${wish || '无'}`);
+                await refreshAllUI();
+            } catch (e) {
+                alert('设置失败: ' + e.message);
+            }
+        }
+
+        async function initReward() {
+            log('🎴 STUD激励系统 V7.0 启动 (统一抽卡券 + 零食)');
+            currentResults = [];
+            await refreshAllUI();
+            document.getElementById('buyBoxBtn').addEventListener('click', () => buyBox(1));
+            document.getElementById('buyBoxMultiBtn').addEventListener('click', () => buyBox(10));
+            document.getElementById('claimBtn').addEventListener('click', claimWeekly);
+        }
+
+        window.onload = initReward;
+    </script>
+</body>
+</html>

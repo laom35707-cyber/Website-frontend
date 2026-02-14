@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>♠ 扑克·共生前传｜三界破格</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body {
+            background: #0a0a0a;
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .canvas-container {
+            position: relative;
+            width: 1000px;
+            max-width: 100%;
+            aspect-ratio: 1000 / 600;
+            border: 1px solid #333;
+            box-shadow: 0 0 50px rgba(255,255,255,0.1);
+            background: #050505;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #050505;
+        }
+        .control-panel {
+            width: 1000px;
+            max-width: 100%;
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: transparent;
+            border: 1.5px solid #fff;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 12px 28px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: 0.15s;
+            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn:hover { background: rgba(255,255,255,0.1); border-color: #ccc; }
+        .btn:active { background: rgba(255,255,255,0.25); }
+        .result-area {
+            width: 1000px;
+            max-width: 100%;
+            margin-top: 25px;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ddd;
+            font-size: 1.1rem;
+        }
+        .card-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .preview-box {
+            width: 50px;
+            height: 70px;
+            background: white;
+            border: 2px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: black;
+        }
+        .badge {
+            border: 1px solid #777;
+            padding: 6px 16px;
+            color: #eee;
+            font-style: italic;
+        }
+        .footnote {
+            margin-top: 15px;
+            color: #6a6a6a;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="canvas-container">
+        <canvas id="pokerCanvas" width="1000" height="600"></canvas>
+    </div>
+    <div class="control-panel">
+        <button class="btn" id="btnN">♤ N · 碑谷</button>
+        <button class="btn" id="btnR">♧ R · 风暴</button>
+        <button class="btn" id="btnSSR">♢ SSR · 创世</button>
+    </div>
+    <div class="result-area">
+        <div class="card-preview">
+            <span style="color:#aaa;">本次抽到</span>
+            <div class="preview-box" id="resultCard">♠</div>
+            <span id="resultText" style="font-weight:600;">——</span>
+        </div>
+        <div class="badge" id="rarityBadge">等待抽卡</div>
+    </div>
+    <div class="footnote">♦ 前8秒·共用超旋牌雨｜后场·N/R/SSR 梯次破格 ♦</div>
+
+    <script>
+        (function(){
+            const canvas = document.getElementById('pokerCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = 1000, h = 600;
+
+            // 全局状态
+            let animId = null;
+            let cards = [];
+            let particles = [];
+            let currentRarity = null;
+            let startTime = 0;
+            let phase = 'unified'; // unified, N, R, SSR
+
+            // 固定时间轴：共用前期 8000ms
+            const UNIFIED_DURATION = 8000;
+
+            // UI 元素
+            const resultCardEl = document.getElementById('resultCard');
+            const resultTextEl = document.getElementById('resultText');
+            const rarityBadgeEl = document.getElementById('rarityBadge');
+
+            // 辅助函数
+            function random(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            // ---------- 绘制扑克牌（黑白·问号/稀有度）---------
+            function drawCard(card) {
+                const x = card.x, y = card.y, rot = card.rotation || 0;
+                const wCard = card.w || 70, hCard = card.h || 100;
+                const scale = card.scale || 1;
+                const rarity = card.rarity || 'N';
+                const hideRarity = card.hideRarity || false;
+                const isFinal = card.isFinal || false;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rot);
+                ctx.scale(scale, scale);
+
+                ctx.shadowColor = 'rgba(255,255,255,0.3)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                // 牌身
+                ctx.fillStyle = '#fff';
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = card.borderWidth || 2;
+                const radius = 12;
+                ctx.beginPath();
+                ctx.moveTo(-wCard/2 + radius, -hCard/2);
+                ctx.lineTo(wCard/2 - radius, -hCard/2);
+                ctx.quadraticCurveTo(wCard/2, -hCard/2, wCard/2, -hCard/2 + radius);
+                ctx.lineTo(wCard/2, hCard/2 - radius);
+                ctx.quadraticCurveTo(wCard/2, hCard/2, wCard/2 - radius, hCard/2);
+                ctx.lineTo(-wCard/2 + radius, hCard/2);
+                ctx.quadraticCurveTo(-wCard/2, hCard/2, -wCard/2, hCard/2 - radius);
+                ctx.lineTo(-wCard/2, -hCard/2 + radius);
+                ctx.quadraticCurveTo(-wCard/2, -hCard/2, -wCard/2 + radius, -hCard/2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 24px "Inter", "Arial", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                let centerText = '';
+                if (hideRarity) {
+                    centerText = '?';
+                    ctx.font = 'bold 44px "Inter"';
+                    ctx.fillText(centerText, 0, -8);
+                } else {
+                    if (rarity === 'N') centerText = 'N';
+                    else if (rarity === 'R') centerText = 'R';
+                    else if (rarity === 'SSR') centerText = 'SSR';
+                    ctx.font = isFinal ? 'bold 52px "Inter"' : 'bold 32px "Inter"';
+                    ctx.fillText(centerText, 0, -10);
+                }
+
+                let suitSymbol = '';
+                if (hideRarity) suitSymbol = '♠';
+                else {
+                    if (rarity === 'N') suitSymbol = '♠';
+                    else if (rarity === 'R') suitSymbol = '♣';
+                    else if (rarity === 'SSR') suitSymbol = '♦';
+                }
+
+                ctx.font = '24px "Arial", sans-serif';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                ctx.fillText(suitSymbol, -wCard/2 + 12, -hCard/2 + 8);
+                if (!hideRarity) {
+                    ctx.font = '18px "Inter"';
+                    ctx.fillText(rarity, -wCard/2 + 42, -hCard/2 + 12);
+                }
+
+                ctx.save();
+                ctx.translate(wCard/2 - 20, hCard/2 - 20);
+                ctx.rotate(Math.PI);
+                ctx.font = '24px "Arial"';
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#000';
+                ctx.fillText(suitSymbol, 0, 0);
+                if (!hideRarity) {
+                    ctx.font = '18px "Inter"';
+                    ctx.fillText(rarity, 28, 4);
+                }
+                ctx.restore();
+
+                ctx.restore();
+            }
+
+            // 绘制粒子
+            function drawParticles() {
+                for (let p of particles) {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color || '#fff';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            // ---------- 重置抽卡 ----------
+            function startGacha(rarity) {
+                if (animId) cancelAnimationFrame(animId);
+                // 重置全局变量
+                cards = [];
+                particles = [];
+                currentRarity = rarity;
+                phase = 'unified';
+                startTime = 0;
+
+                // UI 预设
+                if (rarity === 'N') {
+                    resultCardEl.innerHTML = '♠';
+                    resultTextEl.innerText = '黑桃A (N)';
+                    rarityBadgeEl.innerHTML = 'N 碑谷';
+                } else if (rarity === 'R') {
+                    resultCardEl.innerHTML = '♣';
+                    resultTextEl.innerText = '梅花K (R)';
+                    rarityBadgeEl.innerHTML = 'R 风暴';
+                } else if (rarity === 'SSR') {
+                    resultCardEl.innerHTML = '♦';
+                    resultTextEl.innerText = '方片A (SSR)';
+                    rarityBadgeEl.innerHTML = 'SSR 创世';
+                }
+
+                // 初始化共用前期：40张牌，全是问号
+                for (let i = 0; i < 45; i++) {
+                    cards.push({
+                        x: random(-300, w+300),
+                        y: random(-400, 0),
+                        vx: random(-2.5, 2.5),
+                        vy: random(4, 12),
+                        rotation: random(-0.3, 0.3),
+                        rotSpeed: random(-0.02, 0.02),
+                        w: random(68, 78),
+                        h: random(98, 108),
+                        rarity: 'N', // placeholder
+                        borderWidth: 2,
+                        hideRarity: true, // 全问号
+                        scale: 1,
+                    });
+                }
+
+                // 开场粒子爆发
+                for (let i = 0; i < 80; i++) {
+                    particles.push({
+                        x: random(0, w), y: random(0, h),
+                        vx: random(-6, 6), vy: random(-8, 4),
+                        size: random(4, 14),
+                        alpha: 0.9,
+                        color: `#fff`,
+                        life: random(40, 90)
+                    });
+                }
+
+                animId = requestAnimationFrame(animate);
+            }
+
+            // ---------- 动画主循环 ----------
+            function animate(now) {
+                if (!startTime) startTime = now;
+                let elapsed = now - startTime;
+
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = '#050505';
+                ctx.fillRect(0, 0, w, h);
+
+                // 阶段切换：共用前期 -> 稀有度专属后期
+                if (phase === 'unified' && elapsed >= UNIFIED_DURATION) {
+                    phase = currentRarity; // 进入 N / R / SSR 阶段
+                    enterRarityPhase();
+                }
+
+                // 更新卡片（根据当前阶段）
+                if (phase === 'unified') {
+                    updateUnified(elapsed);
+                } else if (phase === 'N') {
+                    updateN(now);
+                } else if (phase === 'R') {
+                    updateR(now);
+                } else if (phase === 'SSR') {
+                    updateSSR(now);
+                }
+
+                // 通用粒子更新
+                updateParticles();
+
+                // 绘制
+                for (let c of cards) drawCard(c);
+                drawParticles();
+
+                animId = requestAnimationFrame(animate);
+            }
+
+            // ---------- 共用前期：炫酷牌雨 + 涡流 + 粒子 ----------
+            function updateUnified(elapsed) {
+                // 所有牌做复杂复合运动
+                for (let c of cards) {
+                    c.vy += 0.04;
+                    c.vx += (Math.random() - 0.5) * 0.1;
+                    c.x += c.vx;
+                    c.y += c.vy;
+                    c.rotation += c.rotSpeed;
+
+                    // 边界重置，无限延续
+                    if (c.y > h + 150) {
+                        c.y = -random(80, 200);
+                        c.x = random(100, w-100);
+                        c.vy = random(5, 11);
+                        c.vx = random(-2, 2);
+                    }
+                    if (c.x < -150) c.x = w + 100;
+                    if (c.x > w + 150) c.x = -100;
+
+                    // 向心涡流效应 (随着时间增强)
+                    let dx = w/2 - c.x;
+                    let dy = h/2 - c.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist > 200) {
+                        c.vx += dx * 0.0003;
+                        c.vy += dy * 0.0003;
+                    } else {
+                        c.vx += dx * 0.0001;
+                        c.vy += dy * 0.0001;
+                    }
+
+                    // 限制最大速度
+                    let maxV = 12;
+                    if (Math.abs(c.vx) > maxV) c.vx = Math.sign(c.vx) * maxV;
+                    if (Math.abs(c.vy) > maxV) c.vy = Math.sign(c.vy) * maxV;
+                }
+
+                // 粒子生成：持续产生拖尾粒子
+                if (Math.random() < 0.4) {
+                    for (let i=0;i<4;i++) {
+                        particles.push({
+                            x: random(0,w), y: random(0,h),
+                            vx: random(-2,2), vy: random(-3,1),
+                            size: random(3,8),
+                            alpha: 0.8,
+                            color: `rgba(255,255,255,0.8)`,
+                            life: 30
+                        });
+                    }
+                }
+
+                // 偶尔产生旋转粒子环
+                if (elapsed % 800 < 20) {
+                    for (let i=0;i<20;i++) {
+                        let angle = random(0, Math.PI*2);
+                        particles.push({
+                            x: w/2 + Math.cos(angle)*200,
+                            y: h/2 + Math.sin(angle)*150,
+                            vx: Math.cos(angle)*1.5,
+                            vy: Math.sin(angle)*1.5,
+                            size: random(4,9),
+                            alpha: 0.7,
+                            color: '#fff',
+                            life: 50
+                        });
+                    }
+                }
+            }
+
+            // ---------- 进入稀有度专属阶段：重构卡片和粒子 ----------
+            function enterRarityPhase() {
+                // 清空原有卡片，准备专属场景
+                cards = [];
+                particles = [];
+
+                if (currentRarity === 'N') {
+                    // N: 单张中心巨牌 + 环绕粒子光环
+                    cards.push({
+                        x: w/2, y: h/2,
+                        rotation: 0,
+                        w: 120, h: 160,
+                        rarity: 'N',
+                        borderWidth: 5,
+                        hideRarity: false,
+                        isFinal: true,
+                        scale: 1.2,
+                    });
+                    // 光环粒子
+                    for (let i=0;i<80;i++) {
+                        let angle = random(0, Math.PI*2);
+                        let radius = random(140, 200);
+                        particles.push({
+                            x: w/2 + Math.cos(angle)*radius,
+                            y: h/2 + Math.sin(angle)*radius,
+                            vx: Math.cos(angle)*0.3,
+                            vy: Math.sin(angle)*0.3,
+                            size: random(5,12),
+                            alpha: 0.8,
+                            color: '#fff',
+                            life: 200
+                        });
+                    }
+                    // 额外爆发
+                    for (let i=0;i<60;i++) {
+                        particles.push({
+                            x: w/2, y: h/2,
+                            vx: random(-8,8), vy: random(-8,6),
+                            size: random(5,15),
+                            alpha: 0.9,
+                            color: '#fff',
+                            life: 60
+                        });
+                    }
+                } else if (currentRarity === 'R') {
+                    // R: 三张牌等边三角形，高速环绕 + 密集粒子流
+                    for (let i=0;i<3;i++) {
+                        cards.push({
+                            x: w/2 + Math.cos(i*2.09)*180,
+                            y: h/2 + Math.sin(i*2.09)*130,
+                            vx: 0, vy: 0,
+                            rotation: i*0.5,
+                            w: 95, h: 135,
+                            rarity: 'R',
+                            borderWidth: 4.5,
+                            hideRarity: false,
+                            scale: 1.25,
+                        });
+                    }
+                    // 大量粒子爆发
+                    for (let i=0;i<150;i++) {
+                        particles.push({
+                            x: w/2, y: h/2,
+                            vx: random(-16,16), vy: random(-16,12),
+                            size: random(6,18),
+                            alpha: 0.9,
+                            color: '#fff',
+                            life: 70
+                        });
+                    }
+                    // 环绕粒子带
+                    for (let i=0;i<100;i++) {
+                        let angle = i * 0.2;
+                        particles.push({
+                            x: w/2 + Math.cos(angle)*210,
+                            y: h/2 + Math.sin(angle*1.3)*150,
+                            vx: Math.cos(angle)*0.5,
+                            vy: Math.sin(angle)*0.5,
+                            size: random(5,13),
+                            alpha: 0.75,
+                            color: '#fff',
+                            life: 120
+                        });
+                    }
+                } else if (currentRarity === 'SSR') {
+                    // SSR: 巨型牌 + 全屏粒子风暴 + 冲击波
+                    cards.push({
+                        x: w/2, y: h/2,
+                        rotation: 0,
+                        w: 160, h: 220,
+                        rarity: 'SSR',
+                        borderWidth: 10,
+                        hideRarity: false,
+                        isFinal: true,
+                        scale: 1.5,
+                    });
+                    // 全屏粒子狂舞
+                    for (let i=0;i<300;i++) {
+                        particles.push({
+                            x: random(0,w), y: random(0,h),
+                            vx: random(-20,20), vy: random(-20,20),
+                            size: random(8,28),
+                            alpha: 1,
+                            color: '#fff',
+                            life: 80
+                        });
+                    }
+                    // 中心冲击波
+                    for (let i=0;i<150;i++) {
+                        let angle = random(0, Math.PI*2);
+                        let speed = random(5,22);
+                        particles.push({
+                            x: w/2, y: h/2,
+                            vx: Math.cos(angle)*speed,
+                            vy: Math.sin(angle)*speed,
+                            size: random(7,22),
+                            alpha: 0.95,
+                            color: '#fff',
+                            life: 65
+                        });
+                    }
+                }
+            }
+
+            // ---------- N后期：稳定展示，呼吸，粒子光环流动 ----------
+            function updateN(now) {
+                if (cards.length === 0) return;
+                // 大牌呼吸
+                cards[0].scale = 1.2 + Math.sin(now * 0.005) * 0.05;
+                // 环绕粒子缓慢旋转
+                for (let p of particles) {
+                    let dx = p.x - w/2;
+                    let dy = p.y - h/2;
+                    let angle = Math.atan2(dy, dx);
+                    let dist = Math.hypot(dx, dy);
+                    // 微微旋转
+                    let newAngle = angle + 0.002;
+                    p.x = w/2 + Math.cos(newAngle) * dist;
+                    p.y = h/2 + Math.sin(newAngle) * dist;
+                }
+            }
+
+            // ---------- R后期：三牌环绕，粒子流动，更强动感 ----------
+            function updateR(now) {
+                // 三牌环绕
+                cards.forEach((c, i) => {
+                    let baseAngle = now * 0.0015 + i * 2.09;
+                    c.x = w/2 + Math.cos(baseAngle) * 180;
+                    c.y = h/2 + Math.sin(baseAngle) * 130;
+                    c.rotation += 0.01;
+                });
+                // 粒子带旋转
+                for (let p of particles) {
+                    if (p.life > 50) {
+                        let dx = p.x - w/2;
+                        let dy = p.y - h/2;
+                        let angle = Math.atan2(dy, dx);
+                        let dist = Math.hypot(dx, dy);
+                        let newAngle = angle + 0.003;
+                        p.x = w/2 + Math.cos(newAngle) * dist;
+                        p.y = h/2 + Math.sin(newAngle) * dist;
+                    }
+                }
+                // 随机补充粒子
+                if (Math.random() < 0.2) {
+                    particles.push({
+                        x: w/2, y: h/2,
+                        vx: random(-8,8), vy: random(-8,6),
+                        size: random(5,14),
+                        alpha: 0.8,
+                        color: '#fff',
+                        life: 50
+                    });
+                }
+            }
+
+            // ---------- SSR后期：巨牌震撼，全屏粒子永不停息 ----------
+            function updateSSR(now) {
+                // 巨牌呼吸 + 微微旋转
+                if (cards[0]) {
+                    cards[0].scale = 1.5 + Math.sin(now * 0.004) * 0.08;
+                    cards[0].rotation += 0.002;
+                }
+                // 维持粒子数量，不断新生
+                if (particles.length < 200) {
+                    for (let i=0;i<15;i++) {
+                        particles.push({
+                            x: random(0,w), y: random(0,h),
+                            vx: random(-10,10), vy: random(-10,8),
+                            size: random(6,20),
+                            alpha: 0.9,
+                            color: '#fff',
+                            life: random(40,80)
+                        });
+                    }
+                }
+                // 粒子扩散/旋转/混沌
+                for (let p of particles) {
+                    p.vx += (Math.random()-0.5)*0.2;
+                    p.vy += (Math.random()-0.5)*0.2;
+                }
+            }
+
+            // 通用粒子更新
+            function updateParticles() {
+                for (let i=particles.length-1; i>=0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.03;
+                    p.vx *= 0.995;
+                    p.vy *= 0.995;
+                    p.alpha *= 0.994;
+                    p.life--;
+                    if (p.life <= 0 || p.alpha < 0.02 || p.y > h+200 || p.x < -200 || p.x > w+200) {
+                        particles.splice(i,1);
+                    }
+                }
+            }
+
+            // 按钮监听
+            document.getElementById('btnN').addEventListener('click', ()=>startGacha('N'));
+            document.getElementById('btnR').addEventListener('click', ()=>startGacha('R'));
+            document.getElementById('btnSSR').addEventListener('click', ()=>startGacha('SSR'));
+
+            // 初始占位
+            window.addEventListener('load', ()=>{
+                cards = [{
+                    x: w/2, y: h/2,
+                    rotation: 0,
+                    w: 80, h: 110,
+                    rarity: 'N',
+                    borderWidth: 2,
+                    hideRarity: false,
+                    scale: 1
+                }];
+                resultCardEl.innerHTML = '♠';
+                resultTextEl.innerText = '请抽卡';
+                rarityBadgeEl.innerHTML = '等待';
+                animId = requestAnimationFrame(animate);
+            });
+        })();
+    </script>
+</body>
+</html>
