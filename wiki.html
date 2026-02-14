@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>维基 · 高级中文版</title>
+
+  <!-- PDF.js 渲染引擎 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Font Awesome 6 图标库 (免费) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+
+  <style>
+    /* ----- 全局设计变量 (现代中性风格，中文友好) ----- */
+    :root {
+      --bg-page: #f2f5f9;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-light: #e9eef2;
+      --accent-blue: #2b5fd9;
+      --accent-soft: #eef2ff;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-card: 0 8px 24px rgba(0, 34, 65, 0.08);
+      --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+      --max-width: 1400px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .app-wrapper {
+      max-width: var(--max-width);
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    /* 三栏网格 */
+    .three-col {
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    /* 卡片面板 */
+    .panel {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-card);
+      padding: 18px 14px;
+      transition: box-shadow 0.2s;
+    }
+
+    /* 左侧导航 = 搜索 + 标签区 + 页面列表 */
+    .left-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      background: white;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border: 1px solid var(--border-light);
+      background: white;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.1s;
+    }
+
+    .btn i {
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent-blue);
+    }
+
+    .btn.primary {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
+
+    .btn.primary i {
+      color: white;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border-light);
+    }
+
+    .tag-item {
+      background: #f1f4f9;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: 0.1s;
+    }
+
+    .tag-item.active {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+
+    .tag-item .count {
+      background: rgba(0,0,0,0.08);
+      border-radius: 20px;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+    }
+
+    .page-list {
+      list-style: none;
+      margin-top: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .page-item {
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 3px solid transparent;
+      transition: 0.1s;
+      font-size: 0.95rem;
+    }
+
+    .page-item i {
+      color: var(--text-secondary);
+      width: 18px;
+      font-size: 0.9rem;
+    }
+
+    .page-item:hover {
+      background: var(--accent-soft);
+      border-left-color: var(--accent-blue);
+    }
+
+    .page-item .tags-mini {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .mini-tag {
+      background: #e2e8f0;
+      width: 6px;
+      height: 6px;
+      border-radius: 10px;
+    }
+
+    /* 中间编辑区 */
+    .editor-panel input, .editor-panel textarea {
+      width: 100%;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .editor-panel textarea {
+      min-height: 55vh;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .tag-editor {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f9fafc;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      border: 1px solid var(--border-light);
+    }
+
+    .tag-editor i {
+      color: var(--text-secondary);
+    }
+
+    .tag-editor input {
+      border: none;
+      background: transparent;
+      margin-bottom: 0;
+      padding: 6px 0;
+      flex: 1;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* 右侧预览 */
+    .preview-panel .toc {
+      background: #f9fafc;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+    }
+
+    .toc a {
+      display: block;
+      padding: 4px 0;
+      color: var(--text-secondary);
+      border-bottom: 1px dashed #eee;
+    }
+
+    .preview-content {
+      word-wrap: break-word;
+      line-height: 1.7;
+    }
+
+    .preview-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    .pdf-container canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin: 8px 0;
+    }
+
+    .draft-banner {
+      background: #fff9e6;
+      border: 1px solid #ffeeba;
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: #1e293b;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: 0.2s;
+      z-index: 1000;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <div class="three-col">
+
+    <!-- ========= 左侧面板 ========= -->
+    <div class="panel left-nav">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索标题或内容...">
+        <button class="btn" id="searchBtn"><i class="fas fa-search"></i></button>
+        <button class="btn" id="newBtn"><i class="fas fa-plus"></i></button>
+      </div>
+
+      <!-- 标签云区域 (动态生成) -->
+      <div id="tagCloud" class="tag-cloud">
+        <span class="tag-item active" data-tag="all">全部 <span class="count" id="totalCount">0</span></span>
+        <!-- 其他标签通过js插入 -->
+      </div>
+
+      <!-- 页面列表容器 -->
+      <div id="pagesList" class="page-list">加载中...</div>
+    </div>
+
+    <!-- ========= 中间编辑区 ========= -->
+    <div class="panel editor-panel">
+      <!-- 草稿提示条 -->
+      <div id="draftBanner" class="draft-banner" style="display: none;">
+        <i class="fas fa-pen"></i>
+        <span>检测到未保存的草稿</span>
+        <button class="btn" id="restoreDraftBtn" style="margin-left:auto;">恢复</button>
+        <button class="btn" id="discardDraftBtn">丢弃</button>
+      </div>
+
+      <input type="text" id="titleInput" placeholder="标题" value="">
+
+      <div class="tag-editor">
+        <i class="fas fa-tags"></i>
+        <input type="text" id="tagsInput" placeholder="标签 (用英文逗号分隔)" value="">
+      </div>
+
+      <textarea id="mdInput" placeholder="使用 Markdown 编写内容... 支持 \"链接\"{精确标题} 语法"></textarea>
+
+      <div class="action-bar">
+        <button class="btn primary" id="saveBtn"><i class="fas fa-save"></i> 保存</button>
+        <button class="btn" id="deleteBtn"><i class="fas fa-trash"></i> 删除</button>
+        <button class="btn" id="importBtn"><i class="fas fa-file-import"></i> 导入(.md/.pdf)</button>
+      </div>
+    </div>
+
+    <!-- ========= 右侧预览区 ========= -->
+    <div class="panel preview-panel">
+      <div class="toc">
+        <strong><i class="fas fa-list"></i> 目录</strong>
+        <div id="tocList"></div>
+      </div>
+      <div class="preview-content" id="previewInner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 提示浮层 -->
+<div id="toast" class="toast"></div>
+
+<script>
+  (function() {
+    // ---------- 配置 ----------
+    const API = {
+      list: '/api/wiki/list',
+      get: (slug) => `/api/wiki/${encodeURIComponent(slug)}`,
+      save: '/api/wiki/save',
+      delete: '/api/wiki/delete',
+      search: '/api/wiki/search?q='
+    };
+
+    // ---------- 状态 ----------
+    let allPages = [];               // 完整页面元数据 [{slug,title,tags,updatedAt}]
+    let filteredPages = [];          // 当前显示的页面列表 (根据标签或搜索)
+    let currentTag = 'all';          // 当前选中的标签
+    let currentSlug = null;          // 当前打开的页面slug
+    let draftData = null;            // 本地草稿
+
+    // ---------- DOM 元素 ----------
+    const pagesListEl = document.getElementById('pagesList');
+    const titleInput = document.getElementById('titleInput');
+    const tagsInput = document.getElementById('tagsInput');
+    const mdInput = document.getElementById('mdInput');
+    const previewInner = document.getElementById('previewInner');
+    const tocList = document.getElementById('tocList');
+    const toastEl = document.getElementById('toast');
+    const tagCloudEl = document.getElementById('tagCloud');
+    const totalCountSpan = document.getElementById('totalCount');
+    const draftBanner = document.getElementById('draftBanner');
+    const restoreDraftBtn = document.getElementById('restoreDraftBtn');
+    const discardDraftBtn = document.getElementById('discardDraftBtn');
+
+    // ---------- 工具函数 ----------
+    const slugify = (s) => (s || '').toLowerCase().trim().replace(/[^\w\s\u4e00-\u9fa5\-]/g, '').replace(/\s+/g, '-');
+    const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    function showToast(msg) {
+      toastEl.innerText = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    // 转换 Google Drive 链接
+    function convertGoogleDriveLink(url) {
+      const m = url.match(/\/d\/([^\/]+)/) || url.match(/id=([^&]+)/);
+      if (!m) return null;
+      const id = m[1];
+      if (url.match(/\.(mp4|mov|avi|mkv|webm)$/i)) {
+        return `https://drive.google.com/file/d/${id}/preview`;
+      }
+      return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+
+    function convertOneDriveLink(url) {
+      if (!url.includes("onedrive.live.com")) return null;
+      return url.replace("view.aspx", "embed.aspx");
+    }
+
+    // ---------- Markdown 渲染 (含自定义语法) ----------
+    function renderMarkdown(md) {
+      if (!md) return "";
+      let s = escapeHtml(md);
+
+      // 自定义精确跳转: "显示文本"{精确标题}
+      s = s.replace(/"([^"]+)"\{([^}]+)\}/g, (m, text, target) => {
+        const slug = slugify(target);  // 仅用于构造href，实际跳转会使用精确标题匹配
+        return `<a href="?slug=${slug}" class="wiki-exact-link" data-exact-title="${target}">${text}</a>`;
+      });
+
+      // 标题
+      s = s.replace(/^###### (.*$)/gm, '<h6>$1</h6>');
+      s = s.replace(/^##### (.*$)/gm, '<h5>$1</h5>');
+      s = s.replace(/^#### (.*$)/gm, '<h4>$1</h4>');
+      s = s.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+      s = s.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+      s = s.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+
+      s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      // 图片 + 云盘转换
+      s = s.replace(/!\[(.*?)\]\((.*?)\)/g, (m, alt, url) => {
+        if (url.includes("drive.google.com")) url = convertGoogleDriveLink(url) || url;
+        if (url.includes("onedrive.live.com")) {
+          url = convertOneDriveLink(url) || url;
+          return `<iframe src="${url}" width="100%" height="400" frameborder="0"></iframe>`;
+        }
+        return `<img src="${url}" alt="${alt}" style="max-width:100%;">`;
+      });
+
+      // PDF 占位
+      s = s.replace(/\[pdf\]\(([^)]+\.pdf)\)/gi, (m, url) => {
+        return `<div class="pdf-container" data-src="${url}"></div>`;
+      });
+
+      // 普通链接
+      s = s.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+      s = s.replace(/\n/g, '<br>');
+      return s;
+    }
+
+    // 渲染PDF (多页)
+    async function renderPDFs() {
+      const containers = document.querySelectorAll(".pdf-container:not([data-rendered])");
+      for (const container of containers) {
+        container.setAttribute('data-rendered', 'true');
+        const url = container.dataset.src;
+        try {
+          const pdf = await pdfjsLib.getDocument(url).promise;
+          const numPages = Math.min(pdf.numPages, 20); // 最多20页避免性能问题
+          for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.2 });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            canvas.style.marginBottom = '8px';
+            container.appendChild(canvas);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+          }
+        } catch (e) {
+          container.innerHTML = `<p style="color:red;">PDF加载失败: ${e.message}</p>`;
+        }
+      }
+    }
+
+    // 构建目录
+    function buildTOC() {
+      tocList.innerHTML = '';
+      document.querySelectorAll("#previewInner h1, #previewInner h2, #previewInner h3").forEach(h => {
+        if (!h.id) h.id = 'h' + Math.random().toString(36).slice(2);
+        const a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.innerText = h.innerText;
+        tocList.appendChild(a);
+      });
+    }
+
+    // 刷新预览
+    function renderPreview() {
+      const html = renderMarkdown(mdInput.value);
+      previewInner.innerHTML = html;
+      renderPDFs();
+      buildTOC();
+    }
+
+    // ---------- 本地草稿 ----------
+    function saveDraftToLocal() {
+      const draft = {
+        title: titleInput.value,
+        tags: tagsInput.value,
+        content: mdInput.value,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('wikiDraft', JSON.stringify(draft));
+    }
+
+    function loadDraftFromLocal() {
+      const raw = localStorage.getItem('wikiDraft');
+      if (raw) {
+        try {
+          draftData = JSON.parse(raw);
+          if (draftData.title || draftData.content) {
+            draftBanner.style.display = 'flex';
+          } else {
+            draftData = null;
+          }
+        } catch (e) { draftData = null; }
+      }
+    }
+
+    function clearDraft() {
+      localStorage.removeItem('wikiDraft');
+      draftBanner.style.display = 'none';
+      draftData = null;
+    }
+
+    function applyDraft() {
+      if (draftData) {
+        titleInput.value = draftData.title || '';
+        tagsInput.value = draftData.tags || '';
+        mdInput.value = draftData.content || '';
+        renderPreview();
+        clearDraft();
+      }
+    }
+
+    // 监听输入自动保存草稿 (仅当没有打开已有页面时? 简单起见总是保存)
+    let draftTimer;
+    function autoSaveDraft() {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(() => {
+        saveDraftToLocal();
+      }, 800);
+    }
+    titleInput.addEventListener('input', autoSaveDraft);
+    tagsInput.addEventListener('input', autoSaveDraft);
+    mdInput.addEventListener('input', () => { autoSaveDraft(); renderPreview(); });
+
+    restoreDraftBtn.addEventListener('click', applyDraft);
+    discardDraftBtn.addEventListener('click', clearDraft);
+
+    // ---------- 加载页面列表 & 构建标签云 ----------
+    async function loadList() {
+      const res = await fetch(API.list);
+      const data = await res.json();
+      allPages = data.pages || [];
+      totalCountSpan.innerText = allPages.length;
+
+      // 提取所有标签并计数
+      const tagMap = new Map(); // tag -> count
+      allPages.forEach(p => {
+        (p.tags || []).forEach(t => {
+          if (t.trim()) tagMap.set(t, (tagMap.get(t) || 0) + 1);
+        });
+      });
+
+      // 渲染标签云 (保留“全部”)
+      const cloudHtml = Array.from(tagMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([tag, cnt]) => `<span class="tag-item" data-tag="${tag}">${tag} <span class="count">${cnt}</span></span>`)
+        .join('');
+      tagCloudEl.innerHTML = `<span class="tag-item active" data-tag="all">全部 <span class="count" id="totalCount">${allPages.length}</span></span>` + cloudHtml;
+
+      // 绑定标签点击事件
+      document.querySelectorAll('.tag-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
+          el.classList.add('active');
+          currentTag = el.dataset.tag;
+          filterPagesByTag();
+        });
+      });
+
+      // 默认显示全部
+      filterPagesByTag();
+    }
+
+    function filterPagesByTag() {
+      if (currentTag === 'all') {
+        filteredPages = [...allPages];
+      } else {
+        filteredPages = allPages.filter(p => (p.tags || []).includes(currentTag));
+      }
+      renderPageList(filteredPages);
+    }
+
+    function renderPageList(pages) {
+      pagesListEl.innerHTML = '';
+      if (pages.length === 0) {
+        pagesListEl.innerHTML = '<div style="color:#999;padding:10px;">暂无页面</div>';
+        return;
+      }
+      pages.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'page-item';
+        div.innerHTML = `<i class="fas fa-file-lines"></i> ${escapeHtml(p.title)} 
+          <span class="tags-mini">${(p.tags || []).map(t => `<span class="mini-tag" title="${t}"></span>`).join('')}</span>`;
+        div.addEventListener('click', () => loadPage(p.slug));
+        pagesListEl.appendChild(div);
+      });
+    }
+
+    // ---------- 页面操作 ----------
+    async function loadPage(slug) {
+      const res = await fetch(API.get(slug));
+      const data = await res.json();
+      if (data.ok && data.page) {
+        const page = data.page;
+        currentSlug = page.slug;
+        titleInput.value = page.title || '';
+        tagsInput.value = (page.tags || []).join(', ');
+        mdInput.value = page.content || '';
+        renderPreview();
+        clearDraft(); // 成功加载已有页面后清除草稿（避免混乱）
+      } else {
+        showToast('加载失败');
+      }
+    }
+
+    async function savePage() {
+      const title = titleInput.value.trim();
+      if (!title) return showToast('标题不能为空');
+      const tags = tagsInput.value.split(',').map(s => s.trim()).filter(s => s);
+      const content = mdInput.value;
+      const slug = slugify(title);
+      const payload = { slug, title, content, tags };
+
+      const res = await fetch(API.save, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('保存成功');
+        clearDraft();
+        currentSlug = slug;
+        await loadList();  // 刷新列表
+      } else {
+        showToast('保存失败');
+      }
+    }
+
+    async function deletePage() {
+      if (!currentSlug) return showToast('没有打开任何页面');
+      if (!confirm('确定删除当前页面吗？')) return;
+      await fetch(API.delete, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: currentSlug })
+      });
+      showToast('已删除');
+      clearDraft();
+      // 清空编辑器
+      titleInput.value = ''; tagsInput.value = ''; mdInput.value = '';
+      renderPreview();
+      currentSlug = null;
+      await loadList();
+    }
+
+    // ---------- 搜索 ----------
+    async function searchPages() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return loadList(); // 若为空则刷新全部
+      const res = await fetch(API.search + encodeURIComponent(q));
+      const data = await res.json();
+      if (data.ok) {
+        filteredPages = data.results || [];
+        renderPageList(filteredPages);
+        // 不改变标签云高亮
+      } else {
+        showToast('搜索失败');
+      }
+    }
+
+    // ---------- 导入文件 ----------
+    function importFile() {
+      const ip = document.createElement('input');
+      ip.type = 'file';
+      ip.accept = '.md,.pdf';
+      ip.onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.name.endsWith('.pdf')) {
+          const url = URL.createObjectURL(f);
+          mdInput.value += `\n[pdf](${url})\n`;
+          renderPreview();
+          autoSaveDraft();
+          return;
+        }
+        const r = new FileReader();
+        r.onload = ev => {
+          mdInput.value = ev.target.result;
+          renderPreview();
+          autoSaveDraft();
+        };
+        r.readAsText(f);
+      };
+      ip.click();
+    }
+
+    // ---------- 精确跳转点击处理 ----------
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a.wiki-exact-link');
+      if (link) {
+        e.preventDefault();
+        const exactTitle = link.dataset.exactTitle;
+        if (!exactTitle) return;
+        // 从 allPages 中寻找标题完全匹配 (区分大小写)
+        const found = allPages.find(p => p.title === exactTitle);
+        if (found) {
+          loadPage(found.slug);
+        } else {
+          alert(`未找到标题完全匹配的页面: "${exactTitle}"`);
+        }
+      }
+    });
+
+    // ---------- 初始化 ----------
+    window.addEventListener('load', async () => {
+      await loadList();
+      loadDraftFromLocal();
+
+      // 绑定按钮事件
+      document.getElementById('saveBtn').addEventListener('click', savePage);
+      document.getElementById('deleteBtn').addEventListener('click', deletePage);
+      document.getElementById('newBtn').addEventListener('click', () => {
+        // 新建：清空编辑器，清除当前slug，并尝试从草稿恢复
+        titleInput.value = ''; tagsInput.value = ''; mdInput.value = '';
+        currentSlug = null;
+        renderPreview();
+        loadDraftFromLocal(); // 重新检测草稿，显示横幅
+      });
+      document.getElementById('searchBtn').addEventListener('click', searchPages);
+      document.getElementById('importBtn').addEventListener('click', importFile);
+    });
+  })();
+</script>
+</body>
+</html>
