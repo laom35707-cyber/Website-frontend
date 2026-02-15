@@ -1,9 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>维基 · 高级中文版</title>
+  <!-- 确保移动端视口正确，并禁用缩放（可选），这里保持可访问性 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5, user-scalable=yes"/>
+  <title>维基 · 移动精排</title>
 
   <!-- PDF.js 渲染引擎 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -11,7 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
 
   <style>
-    /* ----- 全局设计变量 (现代中性风格，中文友好) ----- */
+    /* ----- 全局设计变量 (现代中性风格，中文友好) 保持不变，增加移动端优化 ----- */
     :root {
       --bg-page: #f2f5f9;
       --card-bg: #ffffff;
@@ -38,15 +39,18 @@
       font-family: var(--font-sans);
       color: var(--text-primary);
       line-height: 1.5;
+      margin: 0;
+      /* 为底部固定导航留出足够空间，手机下适当增大 */
+      padding-bottom: 110px; 
     }
 
     .app-wrapper {
       max-width: var(--max-width);
-      margin: 20px auto;
-      padding: 0 20px;
+      margin: 12px auto;
+      padding: 0 12px;  /* 手机端稍小边距 */
     }
 
-    /* 三栏网格 */
+    /* 三栏网格 —— 桌面默认布局保持不变 */
     .three-col {
       display: grid;
       grid-template-columns: 280px 1fr 340px;
@@ -64,7 +68,7 @@
       transition: box-shadow 0.2s;
     }
 
-    /* 左侧导航 = 搜索 + 标签区 + 页面列表 */
+    /* 左侧导航 */
     .left-nav {
       display: flex;
       flex-direction: column;
@@ -79,19 +83,19 @@
 
     .search-bar input {
       flex: 1;
-      padding: 8px 12px;
+      padding: 10px 12px; /* 稍微加大便于触摸 */
       border: 1px solid var(--border-light);
       border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      font-size: 1rem;
       background: white;
     }
 
     .btn {
-      padding: 8px 12px;
+      padding: 10px 14px;  /* 增大触摸区域 */
       border: 1px solid var(--border-light);
       background: white;
       border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      font-size: 1rem;
       cursor: pointer;
       color: var(--text-primary);
       display: inline-flex;
@@ -101,7 +105,7 @@
     }
 
     .btn i {
-      font-size: 1rem;
+      font-size: 1.1rem;
       color: var(--text-secondary);
     }
 
@@ -131,15 +135,16 @@
 
     .tag-item {
       background: #f1f4f9;
-      padding: 4px 12px;
+      padding: 6px 14px;   /* 更大的触摸区域 */
       border-radius: 30px;
-      font-size: 0.8rem;
-      display: flex;
+      font-size: 0.9rem;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       cursor: pointer;
       border: 1px solid transparent;
       transition: 0.1s;
+      user-select: none;
     }
 
     .tag-item.active {
@@ -151,8 +156,8 @@
     .tag-item .count {
       background: rgba(0,0,0,0.08);
       border-radius: 20px;
-      padding: 2px 6px;
-      font-size: 0.7rem;
+      padding: 2px 8px;
+      font-size: 0.75rem;
     }
 
     .page-list {
@@ -163,7 +168,7 @@
     }
 
     .page-item {
-      padding: 8px 10px;
+      padding: 12px 10px;   /* 增大行高，易点击 */
       border-radius: var(--radius-sm);
       cursor: pointer;
       display: flex;
@@ -171,13 +176,13 @@
       gap: 8px;
       border-left: 3px solid transparent;
       transition: 0.1s;
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
 
     .page-item i {
       color: var(--text-secondary);
-      width: 18px;
-      font-size: 0.9rem;
+      width: 20px;
+      font-size: 1rem;
     }
 
     .page-item:hover {
@@ -193,8 +198,8 @@
 
     .mini-tag {
       background: #e2e8f0;
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 10px;
     }
 
@@ -203,14 +208,14 @@
       width: 100%;
       border: 1px solid var(--border-light);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      padding: 12px 14px;   /* 舒适间距 */
       font-family: var(--font-sans);
-      font-size: 0.95rem;
-      margin-bottom: 12px;
+      font-size: 1rem;
+      margin-bottom: 16px;
     }
 
     .editor-panel textarea {
-      min-height: 55vh;
+      min-height: 50vh;      /* 手机上半屏稍多 */
       resize: vertical;
       line-height: 1.6;
     }
@@ -220,29 +225,31 @@
       align-items: center;
       gap: 10px;
       background: #f9fafc;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: var(--radius-sm);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       border: 1px solid var(--border-light);
     }
 
     .tag-editor i {
       color: var(--text-secondary);
+      font-size: 1.1rem;
     }
 
     .tag-editor input {
       border: none;
       background: transparent;
       margin-bottom: 0;
-      padding: 6px 0;
+      padding: 8px 0;
       flex: 1;
+      font-size: 1rem;
     }
 
     .action-bar {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     /* 右侧预览 */
@@ -253,19 +260,21 @@
       margin-bottom: 20px;
       max-height: 200px;
       overflow-y: auto;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     .toc a {
       display: block;
-      padding: 4px 0;
+      padding: 6px 0;
       color: var(--text-secondary);
       border-bottom: 1px dashed #eee;
+      text-decoration: none;
     }
 
     .preview-content {
       word-wrap: break-word;
       line-height: 1.7;
+      font-size: 1rem;
     }
 
     .preview-content img {
@@ -286,29 +295,211 @@
       background: #fff9e6;
       border: 1px solid #ffeeba;
       border-radius: var(--radius-sm);
-      padding: 8px 16px;
-      margin-bottom: 12px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      flex-wrap: wrap;
     }
 
     .toast {
       position: fixed;
-      bottom: 25px;
-      right: 25px;
+      bottom: 100px;       /* 避免与导航重叠 */
+      right: 20px;
       background: #1e293b;
       color: white;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border-radius: 40px;
-      font-size: 0.9rem;
+      font-size: 1rem;
       box-shadow: 0 6px 16px rgba(0,0,0,0.2);
       opacity: 0;
       transition: 0.2s;
       z-index: 1000;
+      white-space: nowrap;
     }
     .toast.show { opacity: 1; }
+
+    /* ===== 底部导航栏 (与 index 风格一致, 强化移动端) ===== */
+    .nav-container { 
+      position: fixed; 
+      bottom: 12px; 
+      left: 2%; 
+      width: 96%; 
+      height: 80px; 
+      background: #fff; 
+      border-radius: 28px;  /* 更大圆角，更现代 */
+      border: 1px solid #e8e8e8; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 100; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      backdrop-filter: blur(2px);
+    }
+    .button-group { 
+      width: 100%; 
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center; 
+      max-width:600px;
+    }
+    .nav-btn { 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer; 
+      padding: 8px 4px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      min-width: 64px;
+    }
+    .nav-btn:hover {
+      background: rgba(0,0,0,0.03);
+    }
+    .nav-btn.active {
+      background: rgba(43, 43, 255, 0.12);
+    }
+    .nav-btn .emoji {
+      font-size: 26px;      /* 手机端大一点 */
+      margin-bottom: 4px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .nav-btn .text {
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+      user-select: none;
+      pointer-events: none;
+    }
+    .nav-btn.active .text {
+      color: #2b2bff;
+      font-weight: 600;
+    }
+
+    /* ========= 移动端专用适配 (max-width: 900px 全面调整) ========= */
+    @media screen and (max-width: 900px) {
+      .three-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .panel {
+        width: 100%;
+        padding: 16px;
+      }
+
+      /* 左侧面板调整 */
+      .left-nav .page-list {
+        max-height: 35vh;      /* 手机端限制高度，保证能看到更多内容 */
+      }
+
+      /* 让标签云可横向滚动（更紧凑） */
+      .tag-cloud {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 12px;
+        gap: 10px;
+        scrollbar-width: thin;
+      }
+      .tag-item {
+        flex-shrink: 0;
+      }
+
+      /* 动作栏按钮适当换行 */
+      .action-bar {
+        gap: 8px;
+      }
+      .action-bar .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+
+      /* 编辑器文本区高度稍微降低，避免过长 */
+      .editor-panel textarea {
+        min-height: 40vh;
+      }
+
+      /* 右侧预览区目录最大高度稍微缩小 */
+      .preview-panel .toc {
+        max-height: 150px;
+      }
+
+      /* 草稿条适配 */
+      .draft-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .draft-banner .btn {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* 底部导航的按钮增加点击区域 */
+      .nav-btn {
+        min-width: 72px;
+        padding: 8px 2px;
+      }
+
+      /* 全局字体微调 */
+      body {
+        padding-bottom: 100px; /* 配合底部导航 */
+      }
+
+      .toast {
+        bottom: 110px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+        white-space: normal;
+        text-align: center;
+        border-radius: 50px;
+      }
+    }
+
+    /* 针对更小屏幕 (<=480px) 优化 */
+    @media screen and (max-width: 480px) {
+      .app-wrapper {
+        padding: 0 8px;
+      }
+
+      .search-bar {
+        flex-wrap: wrap;
+      }
+      .search-bar input {
+        width: 100%;
+      }
+      .search-bar .btn {
+        flex: 1;
+      }
+
+      .btn {
+        padding: 10px 10px;
+        font-size: 0.9rem;
+      }
+
+      .tag-item {
+        padding: 5px 12px;
+        font-size: 0.85rem;
+      }
+
+      .nav-container {
+        height: 70px;
+        border-radius: 24px;
+      }
+      .nav-btn .emoji {
+        font-size: 24px;
+      }
+      .nav-btn .text {
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -373,9 +564,31 @@
 <!-- 提示浮层 -->
 <div id="toast" class="toast"></div>
 
+<!-- ========= 底部导航栏 (移动端始终固定) ========= -->
+<div class="nav-container">
+    <div class="button-group">
+        <div class="nav-btn" onclick="location.href='index.html'">
+            <div class="emoji">🏠</div>
+            <div class="text">主页</div>
+        </div>
+        <div class="nav-btn" onclick="location.href='study.html'">
+            <div class="emoji">📚</div>
+            <div class="text">学习</div>
+        </div>
+        <div class="nav-btn active" onclick="location.href='wiki.html'">
+            <div class="emoji">📓</div>
+            <div class="text">维基</div>
+        </div>
+        <div class="nav-btn" onclick="location.href='w.html'">
+            <div class="emoji">⚙️</div>
+            <div class="text">状态</div>
+        </div>
+    </div>
+</div>
+
 <script>
   (function() {
-    // ---------- 配置 ----------
+    // ---------- 配置 (与原始完全一致) ----------
     const API = {
       list: '/api/wiki/list',
       get: (slug) => `/api/wiki/${encodeURIComponent(slug)}`,
@@ -385,11 +598,11 @@
     };
 
     // ---------- 状态 ----------
-    let allPages = [];               // 完整页面元数据 [{slug,title,tags,updatedAt}]
-    let filteredPages = [];          // 当前显示的页面列表 (根据标签或搜索)
-    let currentTag = 'all';          // 当前选中的标签
-    let currentSlug = null;          // 当前打开的页面slug
-    let draftData = null;            // 本地草稿
+    let allPages = [];
+    let filteredPages = [];
+    let currentTag = 'all';
+    let currentSlug = null;
+    let draftData = null;
 
     // ---------- DOM 元素 ----------
     const pagesListEl = document.getElementById('pagesList');
@@ -438,7 +651,7 @@
 
       // 自定义精确跳转: "显示文本"{精确标题}
       s = s.replace(/"([^"]+)"\{([^}]+)\}/g, (m, text, target) => {
-        const slug = slugify(target);  // 仅用于构造href，实际跳转会使用精确标题匹配
+        const slug = slugify(target);
         return `<a href="?slug=${slug}" class="wiki-exact-link" data-exact-title="${target}">${text}</a>`;
       });
 
@@ -483,7 +696,7 @@
         const url = container.dataset.src;
         try {
           const pdf = await pdfjsLib.getDocument(url).promise;
-          const numPages = Math.min(pdf.numPages, 20); // 最多20页避免性能问题
+          const numPages = Math.min(pdf.numPages, 20);
           for (let i = 1; i <= numPages; i++) {
             const page = await pdf.getPage(i);
             const viewport = page.getViewport({ scale: 1.2 });
@@ -562,7 +775,7 @@
       }
     }
 
-    // 监听输入自动保存草稿 (仅当没有打开已有页面时? 简单起见总是保存)
+    // 监听输入自动保存草稿
     let draftTimer;
     function autoSaveDraft() {
       clearTimeout(draftTimer);
@@ -584,22 +797,19 @@
       allPages = data.pages || [];
       totalCountSpan.innerText = allPages.length;
 
-      // 提取所有标签并计数
-      const tagMap = new Map(); // tag -> count
+      const tagMap = new Map();
       allPages.forEach(p => {
         (p.tags || []).forEach(t => {
           if (t.trim()) tagMap.set(t, (tagMap.get(t) || 0) + 1);
         });
       });
 
-      // 渲染标签云 (保留“全部”)
       const cloudHtml = Array.from(tagMap.entries())
         .sort((a, b) => b[1] - a[1])
         .map(([tag, cnt]) => `<span class="tag-item" data-tag="${tag}">${tag} <span class="count">${cnt}</span></span>`)
         .join('');
       tagCloudEl.innerHTML = `<span class="tag-item active" data-tag="all">全部 <span class="count" id="totalCount">${allPages.length}</span></span>` + cloudHtml;
 
-      // 绑定标签点击事件
       document.querySelectorAll('.tag-item').forEach(el => {
         el.addEventListener('click', (e) => {
           document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
@@ -609,7 +819,6 @@
         });
       });
 
-      // 默认显示全部
       filterPagesByTag();
     }
 
@@ -649,7 +858,7 @@
         tagsInput.value = (page.tags || []).join(', ');
         mdInput.value = page.content || '';
         renderPreview();
-        clearDraft(); // 成功加载已有页面后清除草稿（避免混乱）
+        clearDraft();
       } else {
         showToast('加载失败');
       }
@@ -672,7 +881,7 @@
         showToast('保存成功');
         clearDraft();
         currentSlug = slug;
-        await loadList();  // 刷新列表
+        await loadList();
       } else {
         showToast('保存失败');
       }
@@ -688,7 +897,6 @@
       });
       showToast('已删除');
       clearDraft();
-      // 清空编辑器
       titleInput.value = ''; tagsInput.value = ''; mdInput.value = '';
       renderPreview();
       currentSlug = null;
@@ -698,13 +906,12 @@
     // ---------- 搜索 ----------
     async function searchPages() {
       const q = document.getElementById('searchInput').value.trim();
-      if (!q) return loadList(); // 若为空则刷新全部
+      if (!q) return loadList();
       const res = await fetch(API.search + encodeURIComponent(q));
       const data = await res.json();
       if (data.ok) {
         filteredPages = data.results || [];
         renderPageList(filteredPages);
-        // 不改变标签云高亮
       } else {
         showToast('搜索失败');
       }
@@ -743,7 +950,6 @@
         e.preventDefault();
         const exactTitle = link.dataset.exactTitle;
         if (!exactTitle) return;
-        // 从 allPages 中寻找标题完全匹配 (区分大小写)
         const found = allPages.find(p => p.title === exactTitle);
         if (found) {
           loadPage(found.slug);
@@ -758,15 +964,13 @@
       await loadList();
       loadDraftFromLocal();
 
-      // 绑定按钮事件
       document.getElementById('saveBtn').addEventListener('click', savePage);
       document.getElementById('deleteBtn').addEventListener('click', deletePage);
       document.getElementById('newBtn').addEventListener('click', () => {
-        // 新建：清空编辑器，清除当前slug，并尝试从草稿恢复
         titleInput.value = ''; tagsInput.value = ''; mdInput.value = '';
         currentSlug = null;
         renderPreview();
-        loadDraftFromLocal(); // 重新检测草稿，显示横幅
+        loadDraftFromLocal();
       });
       document.getElementById('searchBtn').addEventListener('click', searchPages);
       document.getElementById('importBtn').addEventListener('click', importFile);
