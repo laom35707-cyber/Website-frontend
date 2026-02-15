@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W - 系统状态</title>
+    <style>
+        /* 1. 全局背景 */
+        body { 
+            margin: 0; 
+            background: linear-gradient(to top, #f2f2f2 0%, #ffffff 45%, #ffffff 100%); 
+            font-family: serif; 
+            min-height: 100vh;
+        }
+        /* 2. 导航栏样式 (所有页面通用) - 已修改为Emoji+文字 */
+        .nav-container { 
+            position: fixed; 
+            bottom: 12px; 
+            left: 2%; 
+            width: 96%; 
+            height: 80px; 
+            background: #fff; 
+            border-radius: 18px; 
+            border: 1px solid #e8e8e8; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .button-group { 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+        }
+        .nav-btn { 
+            height: 50px;
+            cursor: pointer; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            min-width: 70px;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        .nav-btn.active {
+            background: rgba(0,0,0,0.05);
+        }
+        .nav-btn-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+            line-height: 1;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .nav-btn-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            letter-spacing: 0.5px;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .nav-btn.active .nav-btn-text {
+            color: #000;
+            font-weight: 600;
+        }
+
+        /* 3. 原w页面样式 */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        .w-body-content {
+            background: transparent; 
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+            color: #000;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-bottom: 120px; /* 给底部导航留空间 */
+        }
+
+        /* 顶部风景图：切一半效果 */
+        .header-banner {
+            width: 100%;
+            height: 40vh;
+            background: url('res/w/header.jpg') no-repeat center center;
+            background-size: cover;
+            /* 给底部做一点点圆角，增加精致感 */
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        /* 资料卡片 */
+        .profile-container {
+            padding: 0 20px;
+            margin-top: -50px; /* 让头像往上浮动一点 */
+        }
+
+        .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 4px solid #fff; /* 纯白描边，非常关键 */
+            background: url('res/w/avatar.jpg') no-repeat center center;
+            background-size: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .motto {
+            margin: 15px 0 30px 5px;
+            font-size: 1.3rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* 数据行：模仿资料卡的精致感 */
+        .data-card {
+            background: rgba(255, 255, 255, 0.9); /* 半透明白，能透出背景渐变 */
+            border-radius: 20px;
+            padding: 10px 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .data-card-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 600;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .data-item:last-child { 
+            border-bottom: none; 
+        }
+
+        .label { 
+            color: #666; 
+            font-size: 0.9rem; 
+            display: flex;
+            align-items: center;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .value { 
+            font-weight: bold; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 1rem;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .status-online {
+            background: #27ae60;
+        }
+
+        .status-offline {
+            background: #e74c3c;
+            animation: none;
+            opacity: 0.5;
+        }
+
+        .status-warning {
+            background: #f39c12;
+        }
+
+        /* 连接状态样式 */
+        .connection-status {
+            display: flex;
+            align-items: center;
+        }
+
+        .connection-good { color: #27ae60; }
+        .connection-fair { color: #f39c12; }
+        .connection-poor { color: #e74c3c; }
+
+        /* 数据加载动画 */
+        .loading {
+            color: #999 !important;
+            font-style: italic;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: loadingDots 1.5s infinite;
+        }
+
+        @keyframes loadingDots {
+            0%, 20% { content: '.'; }
+            40%, 60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .status-tag-good {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+
+        .status-tag-warning {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+
+        .status-tag-poor {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        /* 云朵图标 */
+        .cloud-icon {
+            font-size: 0.8em;
+            margin-right: 4px;
+            opacity: 0.7;
+            /* 禁止文本选择 */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* 调试信息样式 */
+        .debug-info {
+            font-size: 0.7rem;
+            color: #999;
+            font-family: monospace;
+            margin-top: 4px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面内容容器 -->
+    <div class="w-body-content">
+        <div class="header-banner"></div>
+
+        <div class="profile-container">
+            <div class="avatar"></div>
+            <h2 class="motto">祝我天天开心</h2>
+
+            <!-- Cloudflare 状态卡片 -->
+            <div class="data-card">
+                <div class="data-card-title">☁️ 网络状态</div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">☁️</span>运行状态
+                    </span>
+                    <span class="value connection-status">
+                        <span class="status-indicator status-online" id="cf-status-indicator"></span>
+                        <span id="cf-status-text">检测中</span>
+                        <span id="cf-status-tag" class="status-tag status-tag-good" style="display:none;">在线</span>
+                        <!-- 调试信息 -->
+                        <small id="cf-debug" class="debug-info" style="display:none;"></small>
+                    </span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">🌐</span>CDN 节点
+                    </span>
+                    <span class="value" id="cf-colo">检测中...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">⚡</span>边缘缓存
+                    </span>
+                    <span class="value" id="cf-cache-status">检测中...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">🛡️</span>安全防护
+                    </span>
+                    <span class="value" id="cf-security">检测中...</span>
+                </div>
+            </div>
+
+            <!-- 系统性能卡片 -->
+            <div class="data-card">
+                <div class="data-card-title">📊 性能数据</div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">📅</span>运行天数
+                    </span>
+                    <span class="value" id="days">Counting...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">⏱️</span>页面加载
+                    </span>
+                    <span class="value" id="page-load">检测中...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">📈</span>性能评分
+                    </span>
+                    <span class="value" id="performance-score">检测中...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">🔗</span>网络延迟
+                    </span>
+                    <span class="value connection-status" id="network-ping">
+                        <span>检测中...</span>
+                    </span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">💾</span>浏览器内存
+                    </span>
+                    <span class="value" id="browser-memory">检测中...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">
+                        <span class="cloud-icon">🔄</span>请求状态
+                    </span>
+                    <span class="value" id="request-status">等待中...</span>
+                </div>
+            </div>
+
+            <!-- 扩展信息 -->
+            <div class="data-card">
+                <div class="data-card-title">🔍 详细信息</div>
+                <div class="data-item">
+                    <span class="label">User Agent</span>
+                    <span class="value" id="user-agent" style="font-size:0.8rem;max-width:60%;text-align:right;word-break:break-all;"></span>
+                </div>
+                <div class="data-item">
+                    <span class="label">时区</span>
+                    <span class="value" id="timezone">检测中...</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">最后更新</span>
+                    <span class="value" id="last-update">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航栏 - 已修改为Emoji+文字 -->
+    <div class="nav-container">
+        <div class="button-group">
+            <div class="nav-btn" onclick="location.href='index.html'">
+                <div class="nav-btn-emoji">🏠</div>
+                <div class="nav-btn-text">首页</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='study.html'">
+                <div class="nav-btn-emoji">📚</div>
+                <div class="nav-btn-text">学习</div>
+            </div>
+            <div class="nav-btn" onclick="location.href='wiki.html'">
+                <div class="nav-btn-emoji">📓</div>
+                <div class="nav-btn-text">维基</div>
+            </div>
+            <div class="nav-btn active" onclick="location.href='w.html'">
+                <div class="nav-btn-emoji">📊</div>
+                <div class="nav-btn-text">状态</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cloudflare 状态检测类 - 优化版本
+        class CloudflareMonitor {
+            constructor() {
+                this.cfData = {};
+                this.isCF = false;
+                this.lastUpdate = new Date();
+                this.retryCount = 0;
+                this.maxRetries = 2;
+            }
+
+            // 检测是否在Cloudflare上运行（多方法检测）
+            async detectCloudflare() {
+                const detectionMethods = [
+                    this._detectViaTraceEndpoint.bind(this),
+                    this._detectViaHeaders.bind(this),
+                    this._detectViaHostname.bind(this),
+                    this._detectViaPing.bind(this)
+                ];
+
+                // 按顺序尝试所有检测方法
+                for (let i = 0; i < detectionMethods.length; i++) {
+                    try {
+                        const result = await detectionMethods[i]();
+                        if (result) {
+                            console.log(`✅ 方法${i+1}检测到Cloudflare:`, this.cfData);
+                            this.isCF = true;
+                            return true;
+                        }
+                    } catch (error) {
+                        console.log(`方法${i+1}检测失败:`, error.message);
+                    }
+                }
+
+                console.log('❌ 所有检测方法均失败，未检测到Cloudflare');
+                this.isCF = false;
+                return false;
+            }
+
+            // 方法1: 通过trace端点检测
+            async _detectViaTraceEndpoint() {
+                try {
+                    const response = await fetch('https://1.1.1.1/cdn-cgi/trace', {
+                        method: 'GET',
+                        cache: 'no-store',
+                        mode: 'cors',
+                        headers: { 'Accept': 'text/plain' }
+                    });
+                    
+                    if (response.ok) {
+                        const text = await response.text();
+                        const lines = text.split('\n');
+                        const data = {};
+                        
+                        lines.forEach(line => {
+                            const [key, value] = line.split('=');
+                            if (key && value) data[key] = value;
+                        });
+                        
+                        if (data.fl) { // fl字段存在表示在Cloudflare网络中
+                            this.cfData = {
+                                colo: data.colo || '未知',
+                                cacheStatus: '活跃',
+                                securityLevel: '已保护',
+                                ip: data.ip || '未知',
+                                loc: data.loc || '未知',
+                                tls: data.tls || '未知',
+                                uag: data.uag || '未知',
+                                method: 'trace'
+                            };
+                            return true;
+                        }
+                    }
+                } catch (error) {
+                    throw new Error(`Trace检测失败: ${error.message}`);
+                }
+                return false;
+            }
+
+            // 方法2: 通过headers检测
+            async _detectViaHeaders() {
+                try {
+                    const response = await fetch(window.location.origin, {
+                        method: 'HEAD',
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
+                    
+                    const headers = response.headers;
+                    const cfHeaders = {
+                        ray: headers.get('cf-ray'),
+                        server: headers.get('server'),
+                        cacheStatus: headers.get('cf-cache-status'),
+                        colo: headers.get('cf-colo'),
+                        country: headers.get('cf-ipcountry'),
+                        visitor: headers.get('cf-visitor')
+                    };
+                    
+                    // 如果有CF相关header，则认为是Cloudflare
+                    if (cfHeaders.ray || (cfHeaders.server && cfHeaders.server.includes('cloudflare'))) {
+                        this.cfData = {
+                            colo: cfHeaders.colo || '未知',
+                            cacheStatus: cfHeaders.cacheStatus || '动态',
+                            securityLevel: cfHeaders.country ? '已保护' : '基础',
+                            rayId: cfHeaders.ray || '无',
+                            country: cfHeaders.country || '未知',
+                            method: 'headers'
+                        };
+                        return true;
+                    }
+                } catch (error) {
+                    throw new Error(`Headers检测失败: ${error.message}`);
+                }
+                return false;
+            }
+
+            // 方法3: 通过hostname检测
+            async _detectViaHostname() {
+                const hostname = window.location.hostname;
+                const cfDomains = [
+                    '.workers.dev',
+                    '.pages.dev',
+                    '.cloudflare.com',
+                    '.cloudflarestorage.com'
+                ];
+                
+                for (const domain of cfDomains) {
+                    if (hostname.endsWith(domain) || hostname.includes('cloudflare')) {
+                        this.cfData = {
+                            colo: 'Cloudflare网络',
+                            cacheStatus: '页面服务',
+                            securityLevel: '基础防护',
+                            method: 'hostname'
+                        };
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // 方法4: 通过ping检测
+            async _detectViaPing() {
+                try {
+                    // 尝试ping Cloudflare特定端点
+                    const endpoints = [
+                        'https://cloudflare.com/favicon.ico',
+                        'https://www.cloudflare.com/favicon.ico',
+                        'https://dash.cloudflare.com/favicon.ico'
+                    ];
+                    
+                    for (const endpoint of endpoints) {
+                        try {
+                            const startTime = performance.now();
+                            const response = await fetch(endpoint, {
+                                method: 'HEAD',
+                                mode: 'no-cors'
+                            });
+                            const latency = performance.now() - startTime;
+                            
+                            if (latency < 5000) { // 5秒内响应
+                                this.cfData = {
+                                    colo: '外部检测',
+                                    cacheStatus: '网络可达',
+                                    securityLevel: '间接检测',
+                                    latency: Math.round(latency),
+                                    method: 'ping'
+                                };
+                                return true;
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                } catch (error) {
+                    throw new Error(`Ping检测失败: ${error.message}`);
+                }
+                return false;
+            }
+
+            // 获取Cloudflare状态（简化版）
+            async getCloudflareStatus() {
+                // 显示友好状态，不强制依赖外部API
+                if (!this.isCF) {
+                    return {
+                        online: true, // 即使不在Cloudflare上，只要页面能访问就显示在线
+                        status: '正常',
+                        message: '服务运行中',
+                        fallback: true
+                    };
+                }
+
+                try {
+                    // 简化检测：只要能访问页面就算正常
+                    const startTime = performance.now();
+                    const response = await fetch(window.location.pathname, {
+                        method: 'HEAD',
+                        cache: 'no-cache',
+                        credentials: 'same-origin'
+                    });
+                    const latency = Math.round(performance.now() - startTime);
+                    
+                    return {
+                        online: response.ok,
+                        latency: latency,
+                        status: response.ok ? '在线' : '服务异常',
+                        code: response.status,
+                        colo: response.headers.get('cf-colo') || this.cfData.colo
+                    };
+                } catch (error) {
+                    // 如果失败，返回降级状态
+                    return {
+                        online: false,
+                        status: '网络错误',
+                        message: error.message,
+                        fallback: true
+                    };
+                }
+            }
+
+            // 获取缓存状态
+            getCacheStatus() {
+                if (!this.isCF) return '🌍 直连服务器';
+                
+                const status = this.cfData.cacheStatus || '动态';
+                const statusMap = {
+                    'HIT': '✅ 缓存命中',
+                    'MISS': '🔄 缓存未命中',
+                    'EXPIRED': '🔄 缓存过期',
+                    'STALE': '🔄 缓存陈旧',
+                    'BYPASS': '🔄 绕过缓存',
+                    'DYNAMIC': '⚡ 动态内容',
+                    '动态': '⚡ 动态内容',
+                    '活跃': '✅ 缓存活跃',
+                    '页面服务': '📄 页面服务'
+                };
+                
+                return statusMap[status] || status || '🔄 缓存中';
+            }
+
+            // 获取安全状态
+            getSecurityStatus() {
+                if (!this.isCF) return '🛡️ 基础防护';
+                
+                const level = this.cfData.securityLevel || '';
+                if (level.includes('已保护') || level.includes('基础防护')) {
+                    return '✅ 安全防护';
+                } else if (level.includes('高风险')) {
+                    return '⚠️ 需关注';
+                }
+                
+                return '🛡️ 防护中';
+            }
+
+            // 获取节点信息
+            getColoInfo() {
+                if (!this.isCF) return '🌍 直连服务器';
+                
+                const colo = this.cfData.colo || '';
+                const coloMap = {
+                    'HKG': '🇭🇰 香港节点',
+                    'SIN': '🇸🇬 新加坡节点',
+                    'TYO': '🇯🇵 东京节点',
+                    'ICN': '🇰🇷 首尔节点',
+                    'LAX': '🇺🇸 洛杉矶节点',
+                    'SFO': '🇺🇸 旧金山节点',
+                    'DFW': '🇺🇸 达拉斯节点',
+                    'ORD': '🇺🇸 芝加哥节点',
+                    'LHR': '🇬🇧 伦敦节点',
+                    'FRA': '🇩🇪 法兰克福节点',
+                    'AMS': '🇳🇱 阿姆斯特丹节点',
+                    'SYD': '🇦🇺 悉尼节点',
+                    'Cloudflare网络': '🌐 Cloudflare网络',
+                    '外部检测': '📡 外部网络',
+                    '未知': '🌍 全球节点'
+                };
+                
+                return coloMap[colo] || (colo ? `🌐 ${colo}` : '🌍 全球网络');
+            }
+
+            // 获取调试信息
+            getDebugInfo() {
+                return JSON.stringify({
+                    isCF: this.isCF,
+                    data: this.cfData,
+                    method: this.cfData.method,
+                    time: new Date().toLocaleTimeString()
+                }, null, 2);
+            }
+        }
+
+        // 系统性能监控类 - 优化版本
+        class SystemMonitor {
+            constructor() {
+                this.metrics = {};
+                this.cfMonitor = new CloudflareMonitor();
+                this.initialized = false;
+                this.updateInterval = null;
+                this.performanceData = {
+                    startTime: Date.now(),
+                    pageLoadTime: 0,
+                    updateCount: 0
+                };
+            }
+
+            // 初始化
+            async initialize() {
+                if (this.initialized) return;
+                
+                console.log('🔄 初始化系统监控...');
+                
+                // 显示初始状态
+                this.showLoading();
+                
+                // 更新基础信息
+                this.updateBasicInfo();
+                
+                // 开启调试模式（如果URL中有debug参数）
+                this.enableDebugMode();
+                
+                // 延迟检测Cloudflare（避免阻塞页面加载）
+                setTimeout(async () => {
+                    try {
+                        console.log('开始检测Cloudflare...');
+                        const isCF = await this.cfMonitor.detectCloudflare();
+                        
+                        console.log('Cloudflare检测结果:', {
+                            isCF: isCF,
+                            data: this.cfMonitor.cfData
+                        });
+                        
+                        // 更新UI状态
+                        await this.updateCloudflareStatus();
+                        
+                        // 更新缓存和节点信息
+                        document.getElementById('cf-cache-status').textContent = 
+                            this.cfMonitor.getCacheStatus();
+                        document.getElementById('cf-security').textContent = 
+                            this.cfMonitor.getSecurityStatus();
+                        document.getElementById('cf-colo').textContent = 
+                            this.cfMonitor.getColoInfo();
+                        
+                        // 显示检测方法
+                        if (window.debugMode) {
+                            const debugEl = document.getElementById('cf-debug');
+                            debugEl.textContent = `检测方式: ${this.cfMonitor.cfData.method || '未知'}`;
+                        }
+                        
+                    } catch (error) {
+                        console.error('Cloudflare检测异常:', error);
+                        this.showError('检测异常，使用本地模式');
+                    }
+                }, 500);
+                
+                // 初始更新所有指标
+                setTimeout(async () => {
+                    await this.updateAllMetrics();
+                    this.initialized = true;
+                    console.log('✅ 系统监控初始化完成');
+                }, 1000);
+                
+                // 设置自动更新
+                this.setupAutoUpdate();
+            }
+
+            // 显示加载状态
+            showLoading() {
+                document.getElementById('cf-status-text').textContent = '检测中...';
+                document.getElementById('cf-status-indicator').className = 
+                    'status-indicator status-warning';
+                
+                // 为其他项目添加加载动画
+                const loadingItems = ['cf-colo', 'cf-cache-status', 'cf-security'];
+                loadingItems.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('loading');
+                });
+            }
+
+            // 显示错误状态
+            showError(message) {
+                document.getElementById('cf-status-text').textContent = message;
+                document.getElementById('cf-status-indicator').className = 
+                    'status-indicator status-offline';
+                document.getElementById('cf-status-tag').textContent = '本地';
+                document.getElementById('cf-status-tag').className = 'status-tag status-tag-warning';
+                document.getElementById('cf-status-tag').style.display = 'inline-block';
+                
+                // 移除加载动画
+                const loadingItems = ['cf-colo', 'cf-cache-status', 'cf-security'];
+                loadingItems.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove('loading');
+                });
+            }
+
+            // 开启调试模式
+            enableDebugMode() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const isDebug = urlParams.has('debug') || 
+                               window.location.hostname.includes('localhost') ||
+                               window.location.hostname.includes('127.0.0.1');
+                
+                if (isDebug) {
+                    window.debugMode = true;
+                    document.getElementById('cf-debug').style.display = 'block';
+                    console.log('🔧 调试模式已开启');
+                }
+            }
+
+            // 更新基础信息
+            updateBasicInfo() {
+                try {
+                    // 运行天数
+                    const start = new Date('2026-02-10');
+                    const now = new Date();
+                    const days = Math.floor((now - start) / (1000*60*60*24));
+                    document.getElementById('days').textContent = 
+                        days > 0 ? `${days} 天` : '今天';
+                    
+                    // User Agent
+                    const ua = navigator.userAgent;
+                    document.getElementById('user-agent').textContent = 
+                        ua.length > 50 ? ua.substring(0, 50) + '...' : ua;
+                    
+                    // 时区
+                    document.getElementById('timezone').textContent = 
+                        Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        
+                } catch (error) {
+                    console.warn('更新基础信息失败:', error);
+                }
+            }
+
+            // 更新页面性能
+            updatePagePerformance() {
+                try {
+                    if (window.performance && performance.timing) {
+                        const timing = performance.timing;
+                        
+                        // 页面加载时间
+                        if (timing.loadEventEnd > 0) {
+                            const loadTime = timing.loadEventEnd - timing.navigationStart;
+                            this.performanceData.pageLoadTime = loadTime;
+                            
+                            document.getElementById('page-load').textContent = 
+                                `${Math.round(loadTime)}ms`;
+                            
+                            // 性能评分
+                            let score = 100;
+                            if (loadTime > 3000) score = 60;
+                            else if (loadTime > 2000) score = 70;
+                            else if (loadTime > 1000) score = 80;
+                            else if (loadTime > 500) score = 90;
+                            
+                            const scoreElement = document.getElementById('performance-score');
+                            scoreElement.textContent = `${score}/100`;
+                            scoreElement.className = `value ${
+                                score >= 90 ? 'connection-good' : 
+                                score >= 70 ? 'connection-fair' : 
+                                'connection-poor'
+                            }`;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('更新页面性能失败:', error);
+                }
+            }
+
+            // 更新网络延迟
+            async updateNetworkPing() {
+                try {
+                    const startTime = performance.now();
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    
+                    // 使用多种端点尝试
+                    const endpoints = [
+                        'https://1.1.1.1/cdn-cgi/trace',
+                        window.location.origin + '/favicon.ico?' + Date.now(),
+                        'https://www.google.com/favicon.ico'
+                    ];
+                    
+                    let success = false;
+                    let ping = 0;
+                    
+                    for (const endpoint of endpoints) {
+                        try {
+                            await fetch(endpoint, {
+                                method: 'HEAD',
+                                mode: 'no-cors',
+                                signal: controller.signal,
+                                cache: 'no-store'
+                            });
+                            ping = Math.round(performance.now() - startTime);
+                            success = true;
+                            break;
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                    
+                    clearTimeout(timeoutId);
+                    
+                    const pingElement = document.getElementById('network-ping');
+                    if (success) {
+                        pingElement.innerHTML = `<span>${ping}ms</span>`;
+                        pingElement.className = `value connection-status ${
+                            ping < 100 ? 'connection-good' : 
+                            ping < 300 ? 'connection-fair' : 
+                            'connection-poor'
+                        }`;
+                    } else {
+                        pingElement.innerHTML = '<span>超时</span>';
+                        pingElement.className = 'value connection-status connection-poor';
+                    }
+                    
+                } catch (error) {
+                    console.warn('更新网络延迟失败:', error);
+                    document.getElementById('network-ping').innerHTML = 
+                        '<span>--</span>';
+                }
+            }
+
+            // 更新浏览器内存
+            updateBrowserMemory() {
+                try {
+                    if (performance && performance.memory) {
+                        const memory = performance.memory;
+                        const usedMB = Math.round(memory.usedJSHeapSize / (1024 * 1024));
+                        const totalMB = Math.round(memory.totalJSHeapSize / (1024 * 1024));
+                        const limitMB = Math.round(memory.jsHeapSizeLimit / (1024 * 1024));
+                        
+                        document.getElementById('browser-memory').textContent = 
+                            `${usedMB}MB / ${totalMB}MB`;
+                            
+                        // 添加颜色提示
+                        const memoryElement = document.getElementById('browser-memory');
+                        const usagePercent = Math.round((usedMB / totalMB) * 100);
+                        
+                        if (usagePercent > 90) {
+                            memoryElement.className = 'value connection-poor';
+                        } else if (usagePercent > 70) {
+                            memoryElement.className = 'value connection-fair';
+                        } else {
+                            memoryElement.className = 'value connection-good';
+                        }
+                        
+                        return { usedMB, totalMB, limitMB, usagePercent };
+                    } else {
+                        document.getElementById('browser-memory').textContent = 
+                            'N/A';
+                    }
+                } catch (error) {
+                    console.warn('更新浏览器内存失败:', error);
+                }
+                return null;
+            }
+
+            // 更新Cloudflare状态
+            async updateCloudflareStatus() {
+                try {
+                    const cfStatus = await this.cfMonitor.getCloudflareStatus();
+                    const statusIndicator = document.getElementById('cf-status-indicator');
+                    const statusText = document.getElementById('cf-status-text');
+                    const statusTag = document.getElementById('cf-status-tag');
+                    
+                    // 更新状态指示器
+                    if (cfStatus.online) {
+                        statusIndicator.className = 'status-indicator status-online';
+                        statusText.textContent = cfStatus.status || '在线';
+                        statusTag.className = 'status-tag status-tag-good';
+                        statusTag.textContent = '正常';
+                        statusTag.style.display = 'inline-block';
+                    } else {
+                        statusIndicator.className = 'status-indicator status-offline';
+                        statusText.textContent = cfStatus.message || '离线';
+                        statusTag.className = 'status-tag status-tag-poor';
+                        statusTag.textContent = '异常';
+                        statusTag.style.display = 'inline-block';
+                    }
+                    
+                    // 显示延迟信息（如果有）
+                    if (cfStatus.latency && window.debugMode) {
+                        const debugEl = document.getElementById('cf-debug');
+                        if (debugEl) {
+                            debugEl.textContent = `延迟: ${cfStatus.latency}ms | 方式: ${this.cfMonitor.cfData.method || '未知'}`;
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('更新Cloudflare状态失败:', error);
+                    this.showError('状态更新失败');
+                }
+            }
+
+            // 更新请求状态
+            updateRequestStatus() {
+                try {
+                    const now = new Date();
+                    const hour = now.getHours();
+                    const minute = now.getMinutes();
+                    const second = now.getSeconds();
+                    
+                    let status = '正常';
+                    let className = 'connection-good';
+                    
+                    // 根据时间模拟不同状态（可自定义逻辑）
+                    if (this.performanceData.updateCount % 10 === 0) {
+                        status = '刷新中';
+                        className = 'connection-fair';
+                    } else if (minute % 15 === 0) {
+                        status = '高峰期';
+                        className = 'connection-fair';
+                    } else if (second % 30 < 5) {
+                        status = '低负载';
+                        className = 'connection-good';
+                    }
+                    
+                    const element = document.getElementById('request-status');
+                    element.textContent = status;
+                    element.className = `value ${className}`;
+                    
+                } catch (error) {
+                    console.warn('更新请求状态失败:', error);
+                }
+            }
+
+            // 更新所有指标
+            async updateAllMetrics() {
+                try {
+                    this.performanceData.updateCount++;
+                    
+                    // 更新基础信息
+                    this.updateBasicInfo();
+                    
+                    // 更新页面性能
+                    this.updatePagePerformance();
+                    
+                    // 并行更新网络和内存
+                    await Promise.all([
+                        this.updateNetworkPing(),
+                        Promise.resolve(this.updateBrowserMemory())
+                    ]);
+                    
+                    // 更新请求状态
+                    this.updateRequestStatus();
+                    
+                    // 更新最后更新时间
+                    const now = new Date();
+                    document.getElementById('last-update').textContent = 
+                        now.toLocaleTimeString('zh-CN', { 
+                            hour12: false,
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                    
+                    if (window.debugMode) {
+                        console.log(`🔄 第${this.performanceData.updateCount}次更新完成:`, 
+                            new Date().toLocaleTimeString());
+                    }
+                    
+                } catch (error) {
+                    console.error('更新指标失败:', error);
+                    
+                    // 显示错误但仍更新时间
+                    const now = new Date();
+                    document.getElementById('last-update').textContent = 
+                        now.toLocaleTimeString('zh-CN') + ' (更新失败)';
+                }
+            }
+
+            // 设置自动更新
+            setupAutoUpdate() {
+                // 清除可能存在的旧定时器
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                }
+                
+                // 初始延迟后开始更新
+                setTimeout(() => {
+                    // 每20秒更新一次完整数据
+                    this.updateInterval = setInterval(async () => {
+                        await this.updateAllMetrics();
+                        
+                        // 每3次完整更新，更新一次Cloudflare状态
+                        if (this.performanceData.updateCount % 3 === 0) {
+                            await this.updateCloudflareStatus();
+                        }
+                    }, 20000);
+                    
+                    console.log('🔄 自动更新已启动 (20秒间隔)');
+                }, 2000);
+                
+                // 添加页面可见性变化监听
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) {
+                        console.log('页面可见，立即更新');
+                        this.updateAllMetrics();
+                    }
+                });
+                
+                // 添加窗口聚焦监听
+                window.addEventListener('focus', () => {
+                    console.log('窗口聚焦，更新数据');
+                    this.updateAllMetrics();
+                });
+            }
+
+            // 销毁监控器
+            destroy() {
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                    this.updateInterval = null;
+                }
+                console.log('监控器已销毁');
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 页面加载完成，开始初始化...');
+            
+            // 创建全局监控器实例
+            window.systemMonitor = new SystemMonitor();
+            
+            // 开始初始化
+            window.systemMonitor.initialize();
+            
+            // 添加页面卸载时的清理
+            window.addEventListener('beforeunload', () => {
+                if (window.systemMonitor) {
+                    window.systemMonitor.destroy();
+                }
+            });
+            
+            // 添加错误处理
+            window.addEventListener('error', (event) => {
+                console.error('全局错误:', event.error);
+            });
+            
+            // 添加未处理的Promise拒绝处理
+            window.addEventListener('unhandledrejection', (event) => {
+                console.error('未处理的Promise拒绝:', event.reason);
+            });
+        });
+
+        // 添加手动刷新功能（可选）
+        function manualRefresh() {
+            if (window.systemMonitor) {
+                console.log('🔄 手动刷新请求');
+                window.systemMonitor.updateAllMetrics();
+                
+                // 显示刷新提示
+                const updateEl = document.getElementById('last-update');
+                const originalText = updateEl.textContent;
+                updateEl.textContent = '刷新中...';
+                
+                setTimeout(() => {
+                    updateEl.textContent = originalText;
+                }, 1000);
+            }
+        }
+
+        // 添加快捷键支持（可选）
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey && event.key === 'r') {
+                event.preventDefault(); // 防止默认刷新
+                manualRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

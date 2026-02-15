@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <!-- 确保移动端视口正确，并禁用缩放（可选），这里保持可访问性 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5, user-scalable=yes"/>
+  <title>维基 · 移动精排</title>
+
+  <!-- PDF.js 渲染引擎 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Font Awesome 6 图标库 (免费) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+
+  <style>
+    /* ----- 全局设计变量 (现代中性风格，中文友好) 保持不变，增加移动端优化 ----- */
+    :root {
+      --bg-page: #f2f5f9;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-light: #e9eef2;
+      --accent-blue: #2b5fd9;
+      --accent-soft: #eef2ff;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-card: 0 8px 24px rgba(0, 34, 65, 0.08);
+      --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+      --max-width: 1400px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin: 0;
+      /* 为底部固定导航留出足够空间，手机下适当增大 */
+      padding-bottom: 110px; 
+    }
+
+    .app-wrapper {
+      max-width: var(--max-width);
+      margin: 12px auto;
+      padding: 0 12px;  /* 手机端稍小边距 */
+    }
+
+    /* 三栏网格 —— 桌面默认布局保持不变 */
+    .three-col {
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    /* 卡片面板 */
+    .panel {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-card);
+      padding: 18px 14px;
+      transition: box-shadow 0.2s;
+    }
+
+    /* 左侧导航 */
+    .left-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 10px 12px; /* 稍微加大便于触摸 */
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      background: white;
+    }
+
+    .btn {
+      padding: 10px 14px;  /* 增大触摸区域 */
+      border: 1px solid var(--border-light);
+      background: white;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      cursor: pointer;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.1s;
+    }
+
+    .btn i {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+
+    .btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent-blue);
+    }
+
+    .btn.primary {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
+
+    .btn.primary i {
+      color: white;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border-light);
+    }
+
+    .tag-item {
+      background: #f1f4f9;
+      padding: 6px 14px;   /* 更大的触摸区域 */
+      border-radius: 30px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: 0.1s;
+      user-select: none;
+    }
+
+    .tag-item.active {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+
+    .tag-item .count {
+      background: rgba(0,0,0,0.08);
+      border-radius: 20px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+    }
+
+    .page-list {
+      list-style: none;
+      margin-top: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .page-item {
+      padding: 12px 10px;   /* 增大行高，易点击 */
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 3px solid transparent;
+      transition: 0.1s;
+      font-size: 1rem;
+    }
+
+    .page-item i {
+      color: var(--text-secondary);
+      width: 20px;
+      font-size: 1rem;
+    }
+
+    .page-item:hover {
+      background: var(--accent-soft);
+      border-left-color: var(--accent-blue);
+    }
+
+    .page-item .tags-mini {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .mini-tag {
+      background: #e2e8f0;
+      width: 8px;
+      height: 8px;
+      border-radius: 10px;
+    }
+
+    /* 中间编辑区 */
+    .editor-panel input, .editor-panel textarea {
+      width: 100%;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;   /* 舒适间距 */
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      margin-bottom: 16px;
+    }
+
+    .editor-panel textarea {
+      min-height: 50vh;      /* 手机上半屏稍多 */
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .tag-editor {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f9fafc;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      border: 1px solid var(--border-light);
+    }
+
+    .tag-editor i {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .tag-editor input {
+      border: none;
+      background: transparent;
+      margin-bottom: 0;
+      padding: 8px 0;
+      flex: 1;
+      font-size: 1rem;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    /* 右侧预览 */
+    .preview-panel .toc {
+      background: #f9fafc;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 0;
+      color: var(--text-secondary);
+      border-bottom: 1px dashed #eee;
+      text-decoration: none;
+    }
+
+    .preview-content {
+      word-wrap: break-word;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .preview-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    .pdf-container canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin: 8px 0;
+    }
+
+    .draft-banner {
+      background: #fff9e6;
+      border: 1px solid #ffeeba;
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 100px;       /* 避免与导航重叠 */
+      right: 20px;
+      background: #1e293b;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-size: 1rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: 0.2s;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ===== 底部导航栏 (与 index 风格一致, 强化移动端) ===== */
+    .nav-container { 
+      position: fixed; 
+      bottom: 12px; 
+      left: 2%; 
+      width: 96%; 
+      height: 80px; 
+      background: #fff; 
+      border-radius: 28px;  /* 更大圆角，更现代 */
+      border: 1px solid #e8e8e8; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 100; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      backdrop-filter: blur(2px);
+    }
+    .button-group { 
+      width: 100%; 
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center; 
+      max-width:600px;
+    }
+    .nav-btn { 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer; 
+      padding: 8px 4px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      min-width: 64px;
+    }
+    .nav-btn:hover {
+      background: rgba(0,0,0,0.03);
+    }
+    .nav-btn.active {
+      background: rgba(43, 43, 255, 0.12);
+    }
+    .nav-btn .emoji {
+      font-size: 26px;      /* 手机端大一点 */
+      margin-bottom: 4px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .nav-btn .text {
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+      user-select: none;
+      pointer-events: none;
+    }
+    .nav-btn.active .text {
+      color: #2b2bff;
+      font-weight: 600;
+    }
+
+    /* ========= 移动端专用适配 (max-width: 900px 全面调整) ========= */
+    @media screen and (max-width: 900px) {
+      .three-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .panel {
+        width: 100%;
+        padding: 16px;
+      }
+
+      /* 左侧面板调整 */
+      .left-nav .page-list {
+        max-height: 35vh;      /* 手机端限制高度，保证能看到更多内容 */
+      }
+
+      /* 让标签云可横向滚动（更紧凑） */
+      .tag-cloud {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 12px;
+        gap: 10px;
+        scrollbar-width: thin;
+      }
+      .tag-item {
+        flex-shrink: 0;
+      }
+
+      /* 动作栏按钮适当换行 */
+      .action-bar {
+        gap: 8px;
+      }
+      .action-bar .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+
+      /* 编辑器文本区高度稍微降低，避免过长 */
+      .editor-panel textarea {
+        min-height: 40vh;
+      }
+
+      /* 右侧预览区目录最大高度稍微缩小 */
+      .preview-panel .toc {
+        max-height: 150px;
+      }
+
+      /* 草稿条适配 */
+      .draft-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .draft-banner .btn {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* 底部导航的按钮增加点击区域 */
+      .nav-btn {
+        min-width: 72px;
+        padding: 8px 2px;
+      }
+
+      /* 全局字体微调 */
+      body {
+        padding-bottom: 100px; /* 配合底部导航 */
+      }
+
+      .toast {
+        bottom: 110px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+        white-space: normal;
+        text-align: center;
+        border-radius: 50px;
+      }
+    }
+
+    /* 针对更小屏幕 (<=480px) 优化 */
+    @media screen and (max-width: 480px) {
+      .app-wrapper {
+        padding: 0 8px;
+      }
+
+      .search-bar {
+        flex-wrap: wrap;
+      }
+      .search-bar input {
+        width: 100%;
+      }
+      .search-bar .btn {
+        flex: 1;
+      }
+
+      .btn {
+        padding: 10px 10px;
+        font-size: 0.9rem;
+      }
+
+      .tag-item {
+        padding: 5px 12px;
+        font-size: 0.85rem;
+      }
+
+      .nav-container {
+        height: 70px;
+        border-radius: 24px;
+      }
+      .nav-btn .emoji {
+        font-size: 24px;
+      }
+      .nav-btn .text {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <div class="three-col">
+
+    <!-- ========= 左侧面板 ========= -->
+    <div class="panel left-nav">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索标题或内容...">
+        <button class="btn" id="searchBtn"><i class="fas fa-search"></i></button>
+        <button class="btn" id="newBtn"><i class="fas fa-plus"></i></button>
+      </div>
+
+      <!-- 标签云区域 (动态生成) -->
+      <div id="tagCloud" class="tag-cloud">
+        <span class="tag-item active" data-tag="all">全部 <span class="count" id="totalCount">0</span></span>
+        <!-- 其他标签通过js插入 -->
+      </div>
+
+      <!-- 页面列表容器 -->
+      <div id="pagesList" class="page-list">加载中...</div>
+    </div>
+
+    <!-- ========= 中间编辑区 ========= -->
+    <div class="panel editor-panel">
+      <!-- 草稿提示条 -->
+      <div id="draftBanner" class="draft-banner" style="display: none;">
+        <i class="fas fa-pen"></i>
+        <span>检测到未保存的草稿</span>
+        <button class="btn" id="restoreDraftBtn" style="margin-left:auto;">恢复</button>
+        <button class="btn" id="discardDraftBtn">丢弃</button>
+      </div>
+
+      <input type="text" id="titleInput" placeholder="标题" value="">
+
+      <div class="tag-editor">
+        <i class="fas fa-tags"></i>
+        <input type="text" id="tagsInput" placeholder="标签 (用英文逗号分隔)" value="">
+      </div>
+
+      <textarea id="mdInput" placeholder="使用 Markdown 编写内容... 支持 \"链接\"{精确标题} 语法"></textarea>
+
+      <div class="action-bar">
+        <button class="btn primary" id="saveBtn"><i class="fas fa-save"></i> 保存</button>
+        <button class="btn" id="deleteBtn"><i class="fas fa-trash"></i> 删除</button>
+        <button class="btn" id="importBtn"><i class="fas fa-file-import"></i> 导入(.md/.pdf)</button>
+      </div>
+    </div>
+
+    <!-- ========= 右侧预览区 ========= -->
+    <div class="panel preview-panel">
+      <div class="toc">
+        <strong><i class="fas fa-list"></i> 目录</strong>
+        <div id="tocList"></div>
+      </div>
+      <div class="preview-content" id="previewInner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 提示浮层 -->
+<div id="toast" class="toast"></div>
+
+<!-- ========= 底部导航栏 (移动端始终固定) ========= -->
+<div class="nav-container">
+    <div class="button-group">
+        <div class="nav-btn" onclick="location.href='index.html'">
+            <div class="emoji">🏠</div>
+            <div class="text">主页</div>
+        </div>
+        <div class="nav-btn" onclick="location.href='study.html'">
+            <div class="emoji">📚</div>
+            <div class="text">学习</div>
+        </div>
+        <div class="nav-btn active" onclick="location.href='wiki.html'">
+            <div class="emoji">📓</div>
+            <div class="text">维基</div>
+        </div>
+        <div class="nav-btn" onclick="location.href='w.html'">
+            <div class="emoji">⚙️</div>
+            <div class="text">状态</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- 配置 (与原始完全一致) ----------
+    const API = {
+      list: '/api/wiki/list',
+      get: (slug) => `/api/wiki/${encodeURIComponent(slug)}`,
+      save: '/api/wiki/save',
+      delete: '/api/wiki/delete',
+      search: '/api/wiki/search?q='
+    };
+
+    // ---------- 状态 ----------
+    let allPages = [];
+    let filteredPages = [];
+    let currentTag = 'all';
+    let currentSlug = null;
+    let draftData = null;
+
+    // ---------- DOM 元素 ----------
+    const pagesListEl = document.getElementById('pagesList');
+    const titleInput = document.getElementById('titleInput');
+    const tagsInput = document.getElementById('tagsInput');
+    const mdInput = document.getElementById('mdInput');
+    const previewInner = document.getElementById('previewInner');
+    const tocList = document.getElementById('tocList');
+    const toastEl = document.getElementById('toast');
+    const tagCloudEl = document.getElementById('tagCloud');
+    const totalCountSpan = document.getElementById('totalCount');
+    const draftBanner = document.getElementById('draftBanner');
+    const restoreDraftBtn = document.getElementById('restoreDraftBtn');
+    const discardDraftBtn = document.getElementById('discardDraftBtn');
+
+    // ---------- 工具函数 ----------
+    const slugify = (s) => (s || '').toLowerCase().trim().replace(/[^\w\s\u4e00-\u9fa5\-]/g, '').replace(/\s+/g, '-');
+    const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    function showToast(msg) {
+      toastEl.innerText = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    // 转换 Google Drive 链接
+    function convertGoogleDriveLink(url) {
+      const m = url.match(/\/d\/([^\/]+)/) || url.match(/id=([^&]+)/);
+      if (!m) return null;
+      const id = m[1];
+      if (url.match(/\.(mp4|mov|avi|mkv|webm)$/i)) {
+        return `https://drive.google.com/file/d/${id}/preview`;
+      }
+      return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+
+    function convertOneDriveLink(url) {
+      if (!url.includes("onedrive.live.com")) return null;
+      return url.replace("view.aspx", "embed.aspx");
+    }
+
+    // ---------- Markdown 渲染 (含自定义语法) ----------
+    function renderMarkdown(md) {
+      if (!md) return "";
+      let s = escapeHtml(md);
+
+      // 自定义精确跳转: "显示文本"{精确标题}
+      s = s.replace(/"([^"]+)"\{([^}]+)\}/g, (m, text, target) => {
+        const slug = slugify(target);
+        return `<a href="?slug=${slug}" class="wiki-exact-link" data-exact-title="${target}">${text}</a>`;
+      });
+
+      // 标题
+      s = s.replace(/^###### (.*$)/gm, '<h6>$1</h6>');
+      s = s.replace(/^##### (.*$)/gm, '<h5>$1</h5>');
+      s = s.replace(/^#### (.*$)/gm, '<h4>$1</h4>');
+      s = s.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+      s = s.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+      s = s.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+
+      s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      // 图片 + 云盘转换
+      s = s.replace(/!\[(.*?)\]\((.*?)\)/g, (m, alt, url) => {
+        if (url.includes("drive.google.com")) url = convertGoogleDriveLink(url) || url;
+        if (url.includes("onedrive.live.com")) {
+          url = convertOneDriveLink(url) || url;
+          return `<iframe src="${url}" width="100%" height="400" frameborder="0"></iframe>`;
+        }
+        return `<img src="${url}" alt="${alt}" style="max-width:100%;">`;
+      });
+
+      // PDF 占位
+      s = s.replace(/\[pdf\]\(([^)]+\.pdf)\)/gi, (m, url) => {
+        return `<div class="pdf-container" data-src="${url}"></div>`;
+      });
+
+      // 普通链接
+      s = s.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+      s = s.replace(/\n/g, '<br>');
+      return s;
+    }
+
+    // 渲染PDF (多页)
+    async function renderPDFs() {
+      const containers = document.querySelectorAll(".pdf-container:not([data-rendered])");
+      for (const container of containers) {
+        container.setAttribute('data-rendered', 'true');
+        const url = container.dataset.src;
+        try {
+          const pdf = await pdfjsLib.getDocument(url).promise;
+          const numPages = Math.min(pdf.numPages, 20);
+          for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.2 });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            canvas.style.marginBottom = '8px';
+            container.appendChild(canvas);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+          }
+        } catch (e) {
+          container.innerHTML = `<p style="color:red;">PDF加载失败: ${e.message}</p>`;
+        }
+      }
+    }
+
+    // 构建目录
+    function buildTOC() {
+      tocList.innerHTML = '';
+      document.querySelectorAll("#previewInner h1, #previewInner h2, #previewInner h3").forEach(h => {
+        if (!h.id) h.id = 'h' + Math.random().toString(36).slice(2);
+        const a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.innerText = h.innerText;
+        tocList.appendChild(a);
+      });
+    }
+
+    // 刷新预览
+    function renderPreview() {
+      const html = renderMarkdown(mdInput.value);
+      previewInner.innerHTML = html;
+      renderPDFs();
+      buildTOC();
+    }
+
+    // ---------- 本地草稿 ----------
+    function saveDraftToLocal() {
+      const draft = {
+        title: titleInput.value,
+        tags: tagsInput.value,
+        content: mdInput.value,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('wikiDraft', JSON.stringify(draft));
+    }
+
+    function loadDraftFromLocal() {
+      const raw = localStorage.getItem('wikiDraft');
+      if (raw) {
+        try {
+          draftData = JSON.parse(raw);
+          if (draftData.title || draftData.content) {
+            draftBanner.style.display = 'flex';
+          } else {
+            draftData = null;
+          }
+        } catch (e) { draftData = null; }
+      }
+    }
+
+    function clearDraft() {
+      localStorage.removeItem('wikiDraft');
+      draftBanner.style.display = 'none';
+      draftData = null;
+    }
+
+    function applyDraft() {
+      if (draftData) {
+        titleInput.value = draftData.title || '';
+        tagsInput.value = draftData.tags || '';
+        mdInput.value = draftData.content || '';
+        renderPreview();
+        clearDraft();
+      }
+    }
+
+    // 监听输入自动保存草稿
+    let draftTimer;
+    function autoSaveDraft() {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(() => {
+        saveDraftToLocal();
+      }, 800);
+    }
+    titleInput.addEventListener('input', autoSaveDraft);
+    tagsInput.addEventListener('input', autoSaveDraft);
+    mdInput.addEventListener('input', () => { autoSaveDraft(); renderPreview(); });
+
+    restoreDraftBtn.addEventListener('click', applyDraft);
+    discardDraftBtn.addEventListener('click', clearDraft);
+
+    // ---------- 加载页面列表 & 构建标签云 ----------
+    async function loadList() {
+      const res = await fetch(API.list);
+      const data = await res.json();
+      allPages = data.pages || [];
+      totalCountSpan.innerText = allPages.length;
+
+      const tagMap = new Map();
+      allPages.forEach(p => {
+        (p.tags || []).forEach(t => {
+          if (t.trim()) tagMap.set(t, (tagMap.get(t) || 0) + 1);
+        });
+      });
+
+      const cloudHtml = Array.from(tagMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([tag, cnt]) => `<span class="tag-item" data-tag="${tag}">${tag} <span class="count">${cnt}</span></span>`)
+        .join('');
+      tagCloudEl.innerHTML = `<span class="tag-item active" data-tag="all">全部 <span class="count" id="totalCount">${allPages.length}</span></span>` + cloudHtml;
+
+      document.querySelectorAll('.tag-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          document.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
+          el.classList.add('active');
+          currentTag = el.dataset.tag;
+          filterPagesByTag();
+        });
+      });
+
+      filterPagesByTag();
+    }
+
+    function filterPagesByTag() {
+      if (currentTag === 'all') {
+        filteredPages = [...allPages];
+      } else {
+        filteredPages = allPages.filter(p => (p.tags || []).includes(currentTag));
+      }
+      renderPageList(filteredPages);
+    }
+
+    function renderPageList(pages) {
+      pagesListEl.innerHTML = '';
+      if (pages.length === 0) {
+        pagesListEl.innerHTML = '<div style="color:#999;padding:10px;">暂无页面</div>';
+        return;
+      }
+      pages.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'page-item';
+        div.innerHTML = `<i class="fas fa-file-lines"></i> ${escapeHtml(p.title)} 
+          <span class="tags-mini">${(p.tags || []).map(t => `<span class="mini-tag" title="${t}"></span>`).join('')}</span>`;
+        div.addEventListener('click', () => loadPage(p.slug));
+        pagesListEl.appendChild(div);
+      });
+    }
+
+    // ---------- 页面操作 ----------
+    async function loadPage(slug) {
+      const res = await fetch(API.get(slug));
+      const data = await res.json();
+      if (data.ok && data.page) {
+        const page = data.page;
+        currentSlug = page.slug;
+        titleInput.value = page.title || '';
+        tagsInput.value = (page.tags || []).join(', ');
+        mdInput.value = page.content || '';
+        renderPreview();
+        clearDraft();
+      } else {
+        showToast('加载失败');
+      }
+    }
+
+    async function savePage() {
+      const title = titleInput.value.trim();
+      if (!title) return showToast('标题不能为空');
+      const tags = tagsInput.value.split(',').map(s => s.trim()).filter(s => s);
+      const content = mdInput.value;
+      const slug = slugify(title);
+      const payload = { slug, title, content, tags };
+
+      const res = await fetch(API.save, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('保存成功');
+        clearDraft();
+        currentSlug = slug;
+        await loadList();
+      } else {
+        showToast('保存失败');
+      }
+    }
+
+    async function deletePage() {
+      if (!currentSlug) return showToast('没有打开任何页面');
+      if (!confirm('确定删除当前页面吗？')) return;
+      await fetch(API.delete, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: currentSlug })
+      });
+      showToast('已删除');
+      clearDraft();
+      titleInput.value = ''; tagsInput.value = ''; mdInput.value = '';
+      renderPreview();
+      currentSlug = null;
+      await loadList();
+    }
+
+    // ---------- 搜索 ----------
+    async function searchPages() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return loadList();
+      const res = await fetch(API.search + encodeURIComponent(q));
+      const data = await res.json();
+      if (data.ok) {
+        filteredPages = data.results || [];
+        renderPageList(filteredPages);
+      } else {
+        showToast('搜索失败');
+      }
+    }
+
+    // ---------- 导入文件 ----------
+    function importFile() {
+      const ip = document.createElement('input');
+      ip.type = 'file';
+      ip.accept = '.md,.pdf';
+      ip.onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.name.endsWith('.pdf')) {
+          const url = URL.createObjectURL(f);
+          mdInput.value += `\n[pdf](${url})\n`;
+          renderPreview();
+          autoSaveDraft();
+          return;
+        }
+        const r = new FileReader();
+        r.onload = ev => {
+          mdInput.value = ev.target.result;
+          renderPreview();
+          autoSaveDraft();
+        };
+        r.readAsText(f);
+      };
+      ip.click();
+    }
+
+    // ---------- 精确跳转点击处理 ----------
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a.wiki-exact-link');
+      if (link) {
+        e.preventDefault();
+        const exactTitle = link.dataset.exactTitle;
+        if (!exactTitle) return;
+        const found = allPages.find(p => p.title === exactTitle);
+        if (found) {
+          loadPage(found.slug);
+        } else {
+          alert(`未找到标题完全匹配的页面: "${exactTitle}"`);
+        }
+      }
+    });
+
+    // ---------- 初始化 ----------
+    window.addEventListener('load', async () => {
+      await loadList();
+      loadDraftFromLocal();
+
+      document.getElementById('saveBtn').addEventListener('click', savePage);
+      document.getElementById('deleteBtn').addEventListener('click', deletePage);
+      document.getElementById('newBtn').addEventListener('click', () => {
+        titleInput.value = ''; tagsInput.value = ''; mdInput.value = '';
+        currentSlug = null;
+        renderPreview();
+        loadDraftFromLocal();
+      });
+      document.getElementById('searchBtn').addEventListener('click', searchPages);
+      document.getElementById('importBtn').addEventListener('click', importFile);
+    });
+  })();
+</script>
+</body>
+</html>
