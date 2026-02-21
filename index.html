@@ -1,18 +1,296 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOME</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HOME - LM CLIENT</title>
     <style>
-        /* 1. 全局背景 */
-        body { 
-            margin: 0; 
-            background: linear-gradient(to top, #f2f2f2 0%, #ffffff 45%, #ffffff 100%); 
-            font-family: serif; 
-            height: 100vh;
+        /* --- 基础样式 --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* 防止长按选中文本 */
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
         }
-        /* 2. 导航栏样式 (所有页面通用) */
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.9) 40%, rgba(255,255,255,0.2) 100%), 
+                        url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000') center bottom/cover no-repeat;
+            /* 允许页面滚动，并留出底部导航栏的空间 */
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 110px; 
+        }
+
+        /* --- Logo 区域 --- */
+        .logo-container {
+            margin-top: 15vh;
+            margin-bottom: 40px;
+        }
+
+        /* --- 搜索框 --- */
+        .search-container {
+            width: 100%;
+            max-width: 650px;
+            padding: 0 20px;
+            margin-bottom: 50px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 48px;
+            border-radius: 24px;
+            border: 1.5px solid #b0b0b0;
+            background: transparent;
+            padding: 0 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            user-select: text; /* 搜索框允许输入文本 */
+        }
+
+        .search-input:focus {
+            border-color: #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- 快捷方式网格 --- */
+        .shortcuts-container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 800px;
+            padding: 0 20px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            width: 60px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        
+        /* 长按时的动画效果 */
+        .shortcut-item.pressing {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .shortcut-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .shortcut-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 10px;
+            background-color: #eee;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            /* 确保图片居中填满 */
+            object-fit: cover; 
+        }
+
+        .shape-circle {
+            border-radius: 50%;
+        }
+
+        .shortcut-name {
+            font-size: 13px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* 添加按钮样式 */
+        .add-btn-icon {
+            background-color: rgba(255, 255, 255, 0.6);
+            border: 1px dashed #999;
+            color: #666;
+            font-weight: 300;
+            font-size: 30px;
+        }
+
+        /* --- 弹窗样式 (高级版) --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            width: 340px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        /* 弹窗表单元素 */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .modal-input {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border 0.3s;
+            user-select: text;
+        }
+        .modal-input:focus { border-color: #333; }
+
+        /* 图标选择区域 */
+        .icon-selection-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            align-items: center;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-label input { margin-right: 6px; }
+
+        /* 图标预览和上传 */
+        .icon-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .icon-preview {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background-color: #eee;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        /* 隐藏真实的文件上传 input */
+        #fileInput {
+            display: none;
+        }
+
+        /* 自定义上传按钮 */
+        .upload-btn {
+            flex-grow: 1;
+            height: 40px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+            transition: background 0.2s;
+        }
+        .upload-btn:hover { background: #f0f0f0; }
+
+        /* 底部按钮区域 */
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .modal-btn:active { opacity: 0.7; }
+
+        .btn-cancel { background: #eee; color: #333; }
+        .btn-save { background: #333; color: white; }
+        
+        /* 删除按钮 - 只在编辑模式显示 */
+        .btn-delete {
+            background: #ff3b30;
+            color: white;
+            display: none; /* 默认隐藏 */
+        }
+        .modal.editing .btn-delete {
+            display: block; /* 编辑模式显示 */
+        }
+        .modal.editing .btn-cancel {
+            display: none; /* 编辑模式隐藏取消按钮，用删除代替 */
+        }
+
+        /* --- 底部导航栏样式 --- */
         .nav-container { 
             position: fixed; 
             bottom: 12px; 
@@ -55,40 +333,37 @@
         .nav-btn .emoji {
             font-size: 24px;
             margin-bottom: 4px;
-            user-select: none; /* 禁止文字选择 */
-            pointer-events: none; /* 禁止点击事件 */
+            user-select: none;
+            pointer-events: none;
         }
         .nav-btn .text {
             font-size: 12px;
             font-weight: 500;
             color: #333;
-            user-select: none; /* 禁止文字选择 */
-            pointer-events: none; /* 禁止点击事件 */
+            user-select: none;
+            pointer-events: none;
         }
         .nav-btn.active .text {
             color: #2b2bff;
             font-weight: 600;
         }
-
-        .home-content { 
-            text-align: center; 
-            padding-top: 30vh; 
-            letter-spacing: 10px; 
-        }
-        .home-content h1 {
-            margin-bottom: 20px;
-            font-size: 2.5rem;
-        }
-        .home-content p {
-            color: #666;
-            font-size: 1.1rem;
-        }
     </style>
 </head>
 <body>
-    <div class="home-content">
-        <h1>HOME</h1>
-        <p>欢迎</p>
+
+    <div class="logo-container">
+        <svg width="200" height="70" viewBox="0 0 200 70">
+            <path d="M 40 10 L 40 55 L 60 55" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M 45 40 L 55 20 L 65 35 L 75 20 L 80 55" stroke="black" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="95" y="45" font-family="sans-serif" font-size="22" letter-spacing="3" font-weight="500" fill="black">CLIENT</text>
+        </svg>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" autocomplete="off">
+    </div>
+
+    <div class="shortcuts-container" id="shortcutsContainer">
     </div>
 
     <div class="nav-container">
@@ -111,5 +386,294 @@
             </div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalBox">
+            <h3 id="modalTitle">添加快捷方式</h3>
+            
+            <div class="form-group">
+                <input type="text" id="siteName" class="modal-input" placeholder="网站名称 (例如: 百度)">
+            </div>
+            
+            <div class="form-group">
+                <input type="url" id="siteUrl" class="modal-input" placeholder="网址 (例如: https://baidu.com)">
+            </div>
+
+            <div class="icon-selection-area">
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="iconType" value="auto" checked onchange="toggleIconUpload(false)"> 自动获取
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="iconType" value="custom" onchange="toggleIconUpload(true)"> 自定义上传
+                    </label>
+                </div>
+
+                <div class="icon-preview-container" id="uploadContainer" style="display: none; opacity: 0.5; pointer-events: none;">
+                    <div class="icon-preview" id="iconPreview"></div>
+                    <label for="fileInput" class="upload-btn">选择图片...</label>
+                    <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/svg+xml" onchange="handleFileUpload(event)">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn btn-delete" onclick="deleteCurrentShortcut()">删除</button>
+                <button class="modal-btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn btn-save" onclick="saveShortcut()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 默认内置的快捷方式
+        const defaultShortcuts = [
+            { name: "Bilibili", url: "https://bilibili.com", iconType: 'auto' },
+            { name: "GitHub", url: "https://github.com", iconType: 'auto' },
+            { name: "Google", url: "https://google.com", iconType: 'auto' },
+            { name: "Twitter", url: "https://twitter.com", bgColor: "#000000", text: "𝕏" },
+        ];
+
+        let shortcuts = [];
+        let editingIndex = -1;
+        let tempUploadedIconData = null;
+
+        function init() {
+            const storedData = localStorage.getItem('lm_client_shortcuts_v2');
+            if (storedData) {
+                shortcuts = JSON.parse(storedData);
+            } else {
+                shortcuts = [...defaultShortcuts];
+            }
+            renderShortcuts();
+            
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.trim();
+                    if (query) {
+                        window.location.href = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+                    }
+                }
+            });
+
+            document.getElementById('modalOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        }
+
+        function renderShortcuts() {
+            const container = document.getElementById('shortcutsContainer');
+            container.innerHTML = '';
+
+            shortcuts.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'shortcut-item';
+                
+                setupLongPress(itemDiv, index);
+                itemDiv.addEventListener('click', (e) => {
+                    if (!itemDiv.classList.contains('pressing-trigger')) {
+                         window.location.href = item.url;
+                    }
+                });
+
+                const iconDiv = document.createElement('div');
+                const isShapeCircle = item.shape === 'circle' || (item.bgColor && !item.iconType);
+                iconDiv.className = `shortcut-icon ${isShapeCircle ? 'shape-circle' : ''}`;
+                
+                if (item.iconType === 'custom' && item.customIconData) {
+                    iconDiv.style.backgroundImage = `url('${item.customIconData}')`;
+                    iconDiv.style.backgroundColor = '#fff';
+                } else if (item.iconType === 'auto' || (item.url && !item.bgColor)) {
+                    const iconUrl = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${item.url}&size=128`;
+                     iconDiv.style.backgroundImage = `url('${iconUrl}')`;
+                    iconDiv.style.backgroundColor = '#fff';
+                } else {
+                    iconDiv.style.backgroundColor = item.bgColor || '#eee';
+                    iconDiv.style.color = item.color || '#fff';
+                    iconDiv.innerText = item.text ? item.text : item.name.charAt(0).toUpperCase();
+                }
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'shortcut-name';
+                nameDiv.innerText = item.name;
+
+                itemDiv.appendChild(iconDiv);
+                itemDiv.appendChild(nameDiv);
+                container.appendChild(itemDiv);
+            });
+
+            const addBtn = document.createElement('div');
+            addBtn.className = 'shortcut-item';
+            addBtn.onclick = () => openModal(-1);
+            
+            const addIcon = document.createElement('div');
+            addIcon.className = 'shortcut-icon add-btn-icon shape-circle';
+            addIcon.innerHTML = '+';
+            
+            addBtn.appendChild(addIcon);
+            container.appendChild(addBtn);
+        }
+
+        function setupLongPress(element, index) {
+            let pressTimer;
+            const longPressDuration = 600;
+
+            const startPress = (e) => {
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                
+                element.classList.add('pressing');
+                pressTimer = setTimeout(() => {
+                    element.classList.add('pressing-trigger');
+                    navigator.vibrate && navigator.vibrate(50);
+                    openModal(index);
+                }, longPressDuration);
+            };
+
+            const cancelPress = () => {
+                clearTimeout(pressTimer);
+                element.classList.remove('pressing');
+                setTimeout(() => {
+                     element.classList.remove('pressing-trigger');
+                }, 100);
+            };
+
+            element.addEventListener('touchstart', startPress, {passive: true});
+            element.addEventListener('touchend', cancelPress);
+            element.addEventListener('touchmove', cancelPress);
+
+            element.addEventListener('mousedown', startPress);
+            element.addEventListener('mouseup', cancelPress);
+            element.addEventListener('mouseleave', cancelPress);
+             element.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
+        }
+
+        function toggleIconUpload(enable) {
+            const container = document.getElementById('uploadContainer');
+            if (enable) {
+                container.style.display = 'flex';
+                setTimeout(() => { container.style.opacity = '1'; container.style.pointerEvents = 'auto'; }, 10);
+            } else {
+                container.style.opacity = '0.5'; container.style.pointerEvents = 'none';
+                setTimeout(() => { if(document.querySelector('input[name="iconType"]:checked').value === 'auto') container.style.display = 'none'; }, 200);
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 200 * 1024) {
+                alert("图片太大啦，请选择小于 200KB 的图标。");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempUploadedIconData = e.target.result;
+                document.getElementById('iconPreview').style.backgroundImage = `url('${tempUploadedIconData}')`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openModal(index) {
+            editingIndex = index;
+            tempUploadedIconData = null;
+            document.getElementById('iconPreview').style.backgroundImage = 'none';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('modalOverlay').style.display = 'flex';
+
+            const modalBox = document.getElementById('modalBox');
+            const title = document.getElementById('modalTitle');
+            const nameInput = document.getElementById('siteName');
+            const urlInput = document.getElementById('siteUrl');
+            const autoRadio = document.querySelector('input[value="auto"]');
+            const customRadio = document.querySelector('input[value="custom"]');
+
+            if (index === -1) {
+                modalBox.classList.remove('editing');
+                title.innerText = '添加快捷方式';
+                nameInput.value = '';
+                urlInput.value = '';
+                autoRadio.checked = true;
+                toggleIconUpload(false);
+            } else {
+                modalBox.classList.add('editing');
+                title.innerText = '编辑快捷方式';
+                const item = shortcuts[index];
+                nameInput.value = item.name;
+                urlInput.value = item.url;
+
+                if (item.iconType === 'custom') {
+                    customRadio.checked = true;
+                    toggleIconUpload(true);
+                    if (item.customIconData) {
+                        tempUploadedIconData = item.customIconData;
+                        document.getElementById('iconPreview').style.backgroundImage = `url('${item.customIconData}')`;
+                    }
+                } else {
+                    autoRadio.checked = true;
+                    toggleIconUpload(false);
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            editingIndex = -1;
+        }
+
+        function saveShortcut() {
+            const name = document.getElementById('siteName').value.trim();
+            let url = document.getElementById('siteUrl').value.trim();
+            const iconType = document.querySelector('input[name="iconType"]:checked').value;
+
+            if (!name || !url) {
+                alert('名称和网址不能为空！');
+                return;
+            }
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            const newItem = {
+                name: name,
+                url: url,
+                iconType: iconType,
+            };
+
+            if (iconType === 'custom' && tempUploadedIconData) {
+                newItem.customIconData = tempUploadedIconData;
+            } else if (iconType === 'custom' && !tempUploadedIconData && editingIndex !== -1 && shortcuts[editingIndex].customIconData) {
+                newItem.customIconData = shortcuts[editingIndex].customIconData;
+            }
+
+            if (editingIndex === -1) {
+                shortcuts.push(newItem);
+            } else {
+                shortcuts[editingIndex] = { ...shortcuts[editingIndex], ...newItem };
+            }
+
+            saveToLocal();
+            renderShortcuts();
+            closeModal();
+        }
+        
+        function deleteCurrentShortcut() {
+            if (editingIndex > -1) {
+                if(confirm("确定要删除这个快捷方式吗？")) {
+                    shortcuts.splice(editingIndex, 1);
+                    saveToLocal();
+                    renderShortcuts();
+                    closeModal();
+                }
+            }
+        }
+
+        function saveToLocal() {
+             localStorage.setItem('lm_client_shortcuts_v2', JSON.stringify(shortcuts));
+        }
+
+        init();
+    </script>
 </body>
 </html>
